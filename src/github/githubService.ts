@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { GithubContentItem, Module, ModuleYaml, Unit, UnitYaml, CodeDirective, CodeFile } from "./githubTypes";
 import yaml from "js-yaml";
+import { GithubContentItem, Module, ModuleYaml, Unit, UnitYaml } from "./githubTypes";
 
 interface ModuleDownloadRequest {
     folderPath: string;
@@ -46,6 +46,54 @@ async function throttledFetch(url: string, options?: RequestInit): Promise<Respo
     });
 }
 
+// Helper function to check if a string is a URL or a folder path
+function isUrlOrPath(input: string): { isUrl: boolean; isPath: boolean; type: 'url' | 'path' | 'unknown' } {
+    // Check if it's a URL
+    try {
+        const url = new URL(input);
+        // Valid URL protocols for GitHub
+        const validProtocols = ['http:', 'https:'];
+        if (validProtocols.includes(url.protocol)) {
+            return { isUrl: true, isPath: false, type: 'url' };
+        }
+    } catch {
+        // Not a valid URL, continue to check if it's a path
+    }
+
+    // Check if it's a folder path
+    // Folder paths typically:
+    // - Don't contain protocol (http://, https://)
+    // - May start with / or contain / or \ separators
+    // - May contain relative path indicators (., ..)
+    // - Don't contain spaces at the beginning/end (trimmed)
+    const trimmedInput = input.trim();
+    
+    // If it contains URL-like patterns, it's probably not a path
+    if (trimmedInput.includes('://') || trimmedInput.startsWith('http')) {
+        return { isUrl: false, isPath: false, type: 'unknown' };
+    }
+    
+    // Check for path-like characteristics
+    const pathPatterns = [
+        /^[a-zA-Z]:[/\\]/, // Windows absolute path (C:\ or C:/)
+        /^[/\\]/, // Unix absolute path or Windows UNC
+        /^\.{1,2}[/\\]/, // Relative path starting with ./ or ../
+        /[/\\]/, // Contains path separators
+        /^[a-zA-Z0-9\-_.]+$/, // Simple folder/file name without spaces
+        /^[a-zA-Z0-9\-_./\\]+$/ // Path with valid characters
+    ];
+    
+    const isPath = pathPatterns.some(pattern => pattern.test(trimmedInput)) && 
+                   !trimmedInput.includes(' ') || // No spaces (usually)
+                   trimmedInput.length > 0; // Not empty
+    
+    if (isPath) {
+        return { isUrl: false, isPath: true, type: 'path' };
+    }
+    
+    return { isUrl: false, isPath: false, type: 'unknown' };
+}
+
 // Helper function to format duration in milliseconds to human readable format
 function formatDuration(milliseconds: number): string {
     if (milliseconds < 1000) {
@@ -73,23 +121,77 @@ function createGitHubHeaders() {
     return headers;
 }
 
+// Helper function to extract folder path from Microsoft Learn module URL
+async function extractFolderPathFromLearnUrl(learnUrl: string): Promise<string> {
+    try {
+        console.log(`Fetching Learn module page: ${learnUrl}`);
+        
+        const response = await fetch(learnUrl, {
+            headers: {
+                "User-Agent": "Learn-Module-Viewer",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch Learn module page: ${response.status} ${response.statusText}`);
+        }
+
+        const html = await response.text();
+        
+        // Look for the source_path meta tag
+        const metaTagRegex = /<meta\s+name="source_path"\s+content="([^"]+)"/i;
+        const match = html.match(metaTagRegex);
+        
+        if (!match) {
+            throw new Error("Could not find source_path meta tag in the Learn module page. Make sure this is a valid Microsoft Learn module URL.");
+        }
+        
+        const sourcePath = match[1];
+        console.log(`Found source_path: ${sourcePath}`);
+        
+        // Remove /index.yml from the end to get the folder path
+        const folderPath = sourcePath.replace(/\/index\.yml$/, '');
+        console.log(`Extracted folder path: ${folderPath}`);
+        
+        return folderPath;
+    } catch (error) {
+        console.error("Error extracting folder path from Learn URL:", error);
+        throw new Error(`Failed to extract folder path from Learn URL: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+}
+
 export const DownloadLearnModuleFromGitHub = createServerFn()
     .validator((data: ModuleDownloadRequest) => data)
     .handler(async ({ data }) => {
         const startTime = performance.now();
-        
+
         // Clear cache for fresh requests
         downloadCache.clear();
-        
+
         // Log authentication status for debugging
         console.log(`GitHub API: Using ${accessToken ? "authenticated" : "unauthenticated"} requests`);
         if (!accessToken) {
             console.warn("No GitHub token found. Using unauthenticated requests (60 requests/hour limit). Set GITHUB_ACCESS_TOKEN environment variable for higher limits (5000 requests/hour).");
         }
 
-        // Build the hierarchy starting from the root folder and fetch all contents recursively
+        // Check if the input is a URL or path
+        const inputType = isUrlOrPath(data.folderPath);
+        console.log(`Input detected as: ${inputType.type} (${data.folderPath})`);
+
+        let hierarchy: Record<string, GithubContentItem[]>;
         const hierarchyStartTime = performance.now();
-        const hierarchy = await buildHierarchyAndFetchContents(data.folderPath, {});
+
+        if (inputType.isUrl) {
+            // Handle Microsoft Learn module URLs
+            // Extract folder path from the Learn module page's meta tag
+            console.log("URL detected - extracting folder path from Learn module page...");
+            const folderPath = await extractFolderPathFromLearnUrl(data.folderPath);
+            hierarchy = await buildHierarchyAndFetchContents(folderPath, {});
+        } else {
+            // Handle as folder path (existing logic)
+            hierarchy = await buildHierarchyAndFetchContents(data.folderPath, {});
+        }
+
         const hierarchyEndTime = performance.now();
 
         // Process the hierarchy into a more usable structure
@@ -101,7 +203,7 @@ export const DownloadLearnModuleFromGitHub = createServerFn()
         const totalDuration = endTime - startTime;
         const hierarchyDuration = hierarchyEndTime - hierarchyStartTime;
         const processingDuration = processingEndTime - processingStartTime;
-        
+
         console.log(`Module processing completed in ${totalDuration.toFixed(2)}ms`);
         console.log(`- Hierarchy building: ${hierarchyDuration.toFixed(2)}ms (${((hierarchyDuration / totalDuration) * 100).toFixed(1)}%)`);
         console.log(`- Content processing: ${processingDuration.toFixed(2)}ms (${((processingDuration / totalDuration) * 100).toFixed(1)}%)`);
@@ -116,9 +218,9 @@ export const DownloadLearnModuleFromGitHub = createServerFn()
                 breakdown: {
                     hierarchy: Math.round(hierarchyDuration),
                     processing: Math.round(processingDuration),
-                    uniqueDownloads: downloadCache.size
-                }
-            }
+                    uniqueDownloads: downloadCache.size,
+                },
+            },
         };
     });
 
@@ -147,9 +249,7 @@ async function buildHierarchyAndFetchContents(directory: string, hierarchy: Reco
         // Recursively fetch contents for subdirectories in parallel
         const subdirectories = items.filter((item) => item.type === "dir");
 
-        await Promise.all(
-            subdirectories.map(subdir => buildHierarchyAndFetchContents(subdir.path, hierarchy))
-        );
+        await Promise.all(subdirectories.map((subdir) => buildHierarchyAndFetchContents(subdir.path, hierarchy)));
     }
 
     return hierarchy;
@@ -246,19 +346,45 @@ async function processHierarchyIntoModule(hierarchy: Record<string, GithubConten
     // Wait for all file processing to complete in parallel
     await Promise.all(fileProcessingPromises);
 
+    // Sort units and markdown files by their numeric prefix
+    sortProcessedModuleContents(processedModule);
+
     // Build lookup maps after processing all items
     buildLookupMaps(processedModule);
 
     return processedModule;
 }
 
+function sortProcessedModuleContents(module: Module) {
+    // Helper function to extract numeric prefix from filename
+    const extractNumericPrefix = (name: string): number => {
+        const match = name.match(/^(\d+)/);
+        return match ? parseInt(match[1], 10) : 0; // Put files without numeric prefix at the end
+    };
+
+    // Sort units by numeric prefix in their YAML filename or title
+    module.units.sort((a, b) => {
+        // Try to get order from yaml.title first, then fall back to other properties
+        const aOrder = extractNumericPrefix(a.path.split('/').pop() ?? '');
+        const bOrder = extractNumericPrefix(b.path.split('/').pop() ??'');
+        return aOrder - bOrder;
+    });
+
+    // Sort markdown files by numeric prefix in their filename
+    module.markdownFiles.sort((a, b) => {
+        const aOrder = extractNumericPrefix(a.name);
+        const bOrder = extractNumericPrefix(b.name);
+        return aOrder - bOrder;
+    });
+}
+
 function buildLookupMaps(module: Module) {
     // Build image lookup map
     module.images.forEach((image) => {
         module.imagesByPath[image.path] = image.dataUrl;
-        
+
         // Build image reference map for enhanced images (using same logic as in createEnhancedImage)
-        const imageRef = `IMG_REF_${image.path.replace(/[^a-zA-Z0-9]/g, '_')}`;
+        const imageRef = `IMG_REF_${image.path.replace(/[^a-zA-Z0-9]/g, "_")}`;
         module.imageReferenceMap[imageRef] = image.dataUrl;
     });
 
@@ -307,6 +433,7 @@ async function processYamlFile(item: GithubContentItem, module: Module, hierarch
 async function processUnitYaml(item: GithubContentItem, yamlContent: string, hierarchy: Record<string, GithubContentItem[]>): Promise<Unit | undefined> {
     const parsed = yaml.load(yamlContent) as UnitYaml;
     const unit: Unit = {
+        path: item.path,
         yaml: parsed,
     };
 
@@ -410,11 +537,11 @@ async function processMarkdownContent(content: string, markdownPath: string, hie
             }
         } catch (error) {
             console.error(`Failed to fetch code file ${source}:`, error);
-            return { 
-                match, 
-                codeContent: null, 
-                resolvedPath: null, 
-                error: `Error loading code file: ${source}\n${error instanceof Error ? error.message : "Unknown error"}` 
+            return {
+                match,
+                codeContent: null,
+                resolvedPath: null,
+                error: `Error loading code file: ${source}\n${error instanceof Error ? error.message : "Unknown error"}`,
             };
         }
     });
@@ -429,11 +556,11 @@ async function processMarkdownContent(content: string, markdownPath: string, hie
 
         // Detect indentation of the original :::code directive
         const matchStart = match.index!;
-        const lineStart = processedContent.lastIndexOf('\n', matchStart) + 1;
+        const lineStart = processedContent.lastIndexOf("\n", matchStart) + 1;
         const indentation = processedContent.substring(lineStart, matchStart);
 
         let replacement: string;
-        
+
         if (error || !codeContent) {
             // Replace with error message
             replacement = `${indentation}\`\`\`text
@@ -464,8 +591,8 @@ ${indentation}\`\`\``;
             const resolvedPath = resolveRelativePath(source, markdownPath);
             if (resolvedPath) {
                 // Use the resolved path for the reference to match the imageReferenceMap
-                const imageRef = `IMG_REF_${resolvedPath.replace(/[^a-zA-Z0-9]/g, '_')}`;
-                
+                const imageRef = `IMG_REF_${resolvedPath.replace(/[^a-zA-Z0-9]/g, "_")}`;
+
                 // Create enhanced markdown image with metadata comments
                 const imageBlock = createEnhancedImage(imageRef, altText, type, source);
 
@@ -498,7 +625,7 @@ ${indentation}\`\`\``;
 function createEnhancedCodeBlock(language: string, code: string, highlight?: string, fileName?: string, source?: string, indentation?: string): string {
     // Create metadata comments at the top of the code block
     const metadataComments = [];
-    
+
     if (highlight) {
         metadataComments.push(`// @highlight: ${highlight}`);
     }
@@ -508,18 +635,24 @@ function createEnhancedCodeBlock(language: string, code: string, highlight?: str
     if (source) {
         metadataComments.push(`// @source: ${source}`);
     }
-    
-    const metadataSection = metadataComments.length > 0 ? metadataComments.join('\n') + '\n' : '';
-    
+
+    const metadataSection = metadataComments.length > 0 ? metadataComments.join("\n") + "\n" : "";
+
     // Apply indentation to all lines if specified
-    const indent = indentation || '';
-    const indentedCode = code.split('\n').map(line => line ? indent + line : line).join('\n');
-    const indentedMetadata = metadataSection.split('\n').map(line => line ? indent + line : line).join('\n');
-    
+    const indent = indentation || "";
+    const indentedCode = code
+        .split("\n")
+        .map((line) => (line ? indent + line : line))
+        .join("\n");
+    const indentedMetadata = metadataSection
+        .split("\n")
+        .map((line) => (line ? indent + line : line))
+        .join("\n");
+
     const result = `${indent}\`\`\`${language}
 ${indentedMetadata}${indentedCode}
 ${indent}\`\`\``;
-    
+
     return result;
 }
 
@@ -527,19 +660,19 @@ ${indent}\`\`\``;
 function createEnhancedImage(imageRef: string, altText: string, type?: string, source?: string): string {
     // Create metadata comments on the same line or as a block
     const metadataComments = [];
-    
+
     if (type) {
         metadataComments.push(`<!-- @type: ${type} -->`);
     }
     metadataComments.push(`<!-- @enhanced: true -->`);
     metadataComments.push(`<!-- @ref: ${imageRef} -->`);
-    
+
     // Put comments inline after the image
-    const result = `![${altText}](${imageRef}) ${metadataComments.join(' ')}`;
-    
-    console.log('Generated enhanced image block:');
+    const result = `![${altText}](${imageRef}) ${metadataComments.join(" ")}`;
+
+    console.log("Generated enhanced image block:");
     console.log(JSON.stringify(result, null, 2));
-    
+
     return result;
 }
 

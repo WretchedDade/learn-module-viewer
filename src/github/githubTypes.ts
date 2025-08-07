@@ -1,4 +1,3 @@
-import { createServerFn } from "@tanstack/react-start";
 
 export interface YamlMetadata {
     title: string;
@@ -93,6 +92,7 @@ export interface Module {
 }
 
 export interface Unit {
+    path: string;
     yaml: UnitYaml;
     markdownContent?: string;
 }

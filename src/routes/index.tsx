@@ -2,14 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { DownloadLearnModuleFromGitHub } from "~/github/githubService";
-import { ModuleForm } from "~/components/ModuleForm";
 import { ErrorDisplay } from "~/components/ErrorDisplay";
-import { ModuleOverview } from "~/components/ModuleOverview";
-import { UnitsList } from "~/components/UnitsList";
 import { ImagesGallery } from "~/components/ImagesGallery";
 import { MarkdownFiles } from "~/components/MarkdownFiles";
+import { ModuleForm } from "~/components/ModuleForm";
+import { ModuleOverview } from "~/components/ModuleOverview";
 import { ModuleStatistics } from "~/components/ModuleStatistics";
+import { UnitsList } from "~/components/UnitsList";
+import { DownloadLearnModuleFromGitHub } from "~/github/githubService";
 
 export const Route = createFileRoute("/")({
     component: Home,
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
 function Home() {
     const downloadModule = useServerFn(DownloadLearnModuleFromGitHub);
 
-    const [folderPath, setFolderPath] = useState<string>("learn-pr/aspnetcore/build-web-api-minimal-api");
+    const [folderPath, setFolderPath] = useState<string>("https://learn.microsoft.com/en-us/training/modules/explore-ai-basics/");
     const [queryTrigger, setQueryTrigger] = useState(0);
 
     const moduleQuery = useQuery({
@@ -32,6 +32,7 @@ function Home() {
         },
         enabled: !!folderPath && queryTrigger > 0,
         refetchOnWindowFocus: false,
+        refetchOnMount: false,
     });
 
     const handleLoadModule = () => {
