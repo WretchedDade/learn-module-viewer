@@ -8,6 +8,44 @@ interface ModuleDownloadRequest {
 
 const accessToken = process.env.GITHUB_ACCESS_TOKEN;
 
+// Request queue and batching configuration
+const MAX_CONCURRENT_REQUESTS = 15; // Increased from 10 for better performance
+let activeRequests = 0;
+const requestQueue: Array<() => Promise<any>> = [];
+
+// Simple in-memory cache for downloaded content
+const downloadCache = new Map<string, Promise<string>>();
+
+// Enhanced fetch with connection pooling and request limiting
+async function throttledFetch(url: string, options?: RequestInit): Promise<Response> {
+    return new Promise((resolve, reject) => {
+        const executeRequest = async () => {
+            activeRequests++;
+            try {
+                const response = await fetch(url, options);
+                resolve(response);
+            } catch (error) {
+                reject(error);
+            } finally {
+                activeRequests--;
+                // Process next request in queue
+                if (requestQueue.length > 0 && activeRequests < MAX_CONCURRENT_REQUESTS) {
+                    const nextRequest = requestQueue.shift();
+                    if (nextRequest) {
+                        nextRequest();
+                    }
+                }
+            }
+        };
+
+        if (activeRequests < MAX_CONCURRENT_REQUESTS) {
+            executeRequest();
+        } else {
+            requestQueue.push(executeRequest);
+        }
+    });
+}
+
 // Helper function to format duration in milliseconds to human readable format
 function formatDuration(milliseconds: number): string {
     if (milliseconds < 1000) {
@@ -40,6 +78,9 @@ export const DownloadLearnModuleFromGitHub = createServerFn()
     .handler(async ({ data }) => {
         const startTime = performance.now();
         
+        // Clear cache for fresh requests
+        downloadCache.clear();
+        
         // Log authentication status for debugging
         console.log(`GitHub API: Using ${accessToken ? "authenticated" : "unauthenticated"} requests`);
         if (!accessToken) {
@@ -47,22 +88,36 @@ export const DownloadLearnModuleFromGitHub = createServerFn()
         }
 
         // Build the hierarchy starting from the root folder and fetch all contents recursively
+        const hierarchyStartTime = performance.now();
         const hierarchy = await buildHierarchyAndFetchContents(data.folderPath, {});
+        const hierarchyEndTime = performance.now();
 
         // Process the hierarchy into a more usable structure
+        const processingStartTime = performance.now();
         const processedModule = await processHierarchyIntoModule(hierarchy);
+        const processingEndTime = performance.now();
 
         const endTime = performance.now();
-        const duration = endTime - startTime;
+        const totalDuration = endTime - startTime;
+        const hierarchyDuration = hierarchyEndTime - hierarchyStartTime;
+        const processingDuration = processingEndTime - processingStartTime;
         
-        console.log(`Module processing completed in ${duration.toFixed(2)}ms`);
+        console.log(`Module processing completed in ${totalDuration.toFixed(2)}ms`);
+        console.log(`- Hierarchy building: ${hierarchyDuration.toFixed(2)}ms (${((hierarchyDuration / totalDuration) * 100).toFixed(1)}%)`);
+        console.log(`- Content processing: ${processingDuration.toFixed(2)}ms (${((processingDuration / totalDuration) * 100).toFixed(1)}%)`);
+        console.log(`- Cache hits: ${downloadCache.size} unique downloads`);
 
         // Add performance metrics to the result
         return {
             ...processedModule,
             performance: {
-                duration: Math.round(duration),
-                durationFormatted: formatDuration(duration)
+                duration: Math.round(totalDuration),
+                durationFormatted: formatDuration(totalDuration),
+                breakdown: {
+                    hierarchy: Math.round(hierarchyDuration),
+                    processing: Math.round(processingDuration),
+                    uniqueDownloads: downloadCache.size
+                }
             }
         };
     });
@@ -70,7 +125,7 @@ export const DownloadLearnModuleFromGitHub = createServerFn()
 async function downloadFolderContents(path: string) {
     const apiUrl = `https://api.github.com/repos/MicrosoftDocs/learn/contents/${path}`;
 
-    const response = await fetch(apiUrl, {
+    const response = await throttledFetch(apiUrl, {
         headers: createGitHubHeaders(),
     });
 
@@ -89,52 +144,63 @@ async function buildHierarchyAndFetchContents(directory: string, hierarchy: Reco
         const items = await downloadFolderContents(directory);
         hierarchy[directory] = items.filter((item) => item.type === "file");
 
-        // Recursively fetch contents for subdirectories
+        // Recursively fetch contents for subdirectories in parallel
         const subdirectories = items.filter((item) => item.type === "dir");
 
-        for (const subdir of subdirectories) {
-            await buildHierarchyAndFetchContents(subdir.path, hierarchy);
-        }
+        await Promise.all(
+            subdirectories.map(subdir => buildHierarchyAndFetchContents(subdir.path, hierarchy))
+        );
     }
 
     return hierarchy;
 }
 
 async function downloadFile(url: string) {
-    const fileName = url.split("/").pop() || "unknown";
+    // Check cache first
+    if (downloadCache.has(url)) {
+        return await downloadCache.get(url)!;
+    }
 
-    const response = await fetch(url, {
-        headers: createGitHubHeaders(),
-    });
+    // Create promise and cache it immediately to prevent duplicate requests
+    const downloadPromise = (async () => {
+        const fileName = url.split("/").pop() || "unknown";
 
-    // Check for rate limiting
-    if (response.status === 403 || response.status === 429) {
-        const rateLimitRemaining = response.headers.get("x-ratelimit-remaining");
-        const rateLimitReset = response.headers.get("x-ratelimit-reset");
-        const rateLimitLimit = response.headers.get("x-ratelimit-limit");
-        const retryAfter = response.headers.get("retry-after");
-
-        const authStatus = accessToken ? "authenticated" : "unauthenticated";
-
-        console.error("Rate limiting detected:", {
-            status: response.status,
-            statusText: response.statusText,
-            file: fileName,
-            authStatus,
-            rateLimitRemaining,
-            rateLimitLimit,
-            rateLimitReset: rateLimitReset ? new Date(parseInt(rateLimitReset) * 1000).toISOString() : null,
-            retryAfter: retryAfter ? `${retryAfter} seconds` : null,
+        const response = await throttledFetch(url, {
+            headers: createGitHubHeaders(),
         });
 
-        throw new Error(`Rate limited while downloading ${fileName}. Status: ${response.status}. ${!accessToken ? "Consider adding a GitHub token for higher rate limits." : ""}`);
-    }
+        // Check for rate limiting
+        if (response.status === 403 || response.status === 429) {
+            const rateLimitRemaining = response.headers.get("x-ratelimit-remaining");
+            const rateLimitReset = response.headers.get("x-ratelimit-reset");
+            const rateLimitLimit = response.headers.get("x-ratelimit-limit");
+            const retryAfter = response.headers.get("retry-after");
 
-    if (!response.ok) {
-        throw new Error(`Failed to download ${fileName}: ${response.status} ${response.statusText}`);
-    }
+            const authStatus = accessToken ? "authenticated" : "unauthenticated";
 
-    return await response.text();
+            console.error("Rate limiting detected:", {
+                status: response.status,
+                statusText: response.statusText,
+                file: fileName,
+                authStatus,
+                rateLimitRemaining,
+                rateLimitLimit,
+                rateLimitReset: rateLimitReset ? new Date(parseInt(rateLimitReset) * 1000).toISOString() : null,
+                retryAfter: retryAfter ? `${retryAfter} seconds` : null,
+            });
+
+            throw new Error(`Rate limited while downloading ${fileName}. Status: ${response.status}. ${!accessToken ? "Consider adding a GitHub token for higher rate limits." : ""}`);
+        }
+
+        if (!response.ok) {
+            throw new Error(`Failed to download ${fileName}: ${response.status} ${response.statusText}`);
+        }
+
+        return await response.text();
+    })();
+
+    downloadCache.set(url, downloadPromise);
+    return await downloadPromise;
 }
 
 async function processHierarchyIntoModule(hierarchy: Record<string, GithubContentItem[]>): Promise<Module> {
@@ -150,6 +216,9 @@ async function processHierarchyIntoModule(hierarchy: Record<string, GithubConten
         codeFilesByPath: {},
     };
 
+    // Collect all file processing promises to run in parallel
+    const fileProcessingPromises: Promise<void>[] = [];
+
     // Process all items in the hierarchy
     for (const [folderPath, items] of Object.entries(hierarchy)) {
         for (const item of items) {
@@ -158,21 +227,24 @@ async function processHierarchyIntoModule(hierarchy: Record<string, GithubConten
             switch (extension) {
                 case "yml":
                 case "yaml":
-                    await processYamlFile(item, processedModule, hierarchy);
+                    fileProcessingPromises.push(processYamlFile(item, processedModule, hierarchy));
                     break;
                 case "md":
-                    await processMarkdownFile(item, processedModule, hierarchy);
+                    fileProcessingPromises.push(processMarkdownFile(item, processedModule, hierarchy));
                     break;
                 case "png":
                 case "jpg":
                 case "jpeg":
                 case "gif":
                 case "svg":
-                    await processImageFile(item, processedModule);
+                    fileProcessingPromises.push(processImageFile(item, processedModule));
                     break;
             }
         }
     }
+
+    // Wait for all file processing to complete in parallel
+    await Promise.all(fileProcessingPromises);
 
     // Build lookup maps after processing all items
     buildLookupMaps(processedModule);
@@ -277,7 +349,7 @@ async function processMarkdownFile(item: GithubContentItem, module: Module, hier
 
 async function processImageFile(item: GithubContentItem, module: Module) {
     try {
-        const response = await fetch(item.download_url, {
+        const response = await throttledFetch(item.download_url, {
             headers: createGitHubHeaders(),
         });
         const arrayBuffer = await response.arrayBuffer();
@@ -324,49 +396,58 @@ async function processMarkdownContent(content: string, markdownPath: string, hie
     let processedContent = content;
     const matches = Array.from(content.matchAll(codeDirectiveRegex));
 
-    // Process each directive in reverse order to avoid position shifting
-    for (let i = matches.length - 1; i >= 0; i--) {
-        const match = matches[i];
+    // Prepare all code downloads in parallel first
+    const codeDownloadPromises = matches.map(async (match) => {
         const [fullMatch, language, source, highlight, range, id] = match;
-
         try {
             const resolvedPath = resolveRelativePath(source, markdownPath);
             if (resolvedPath) {
                 const codeContent = await downloadFile(`https://raw.githubusercontent.com/MicrosoftDocs/learn/main/${resolvedPath}`);
-
-                // Detect indentation of the original :::code directive
-                const matchStart = match.index!;
-                const lineStart = processedContent.lastIndexOf('\n', matchStart) + 1;
-                const indentation = processedContent.substring(lineStart, matchStart);
-
-                // Create the enhanced code block with metadata
-                const fileName = source.split("/").pop() || "unknown";
-                const codeBlock = createEnhancedCodeBlock(language, codeContent, highlight, fileName, source, indentation);
-
-                // Replace the directive with the code block
-                const matchEnd = matchStart + fullMatch.length;
-                processedContent = processedContent.substring(0, matchStart) + codeBlock + processedContent.substring(matchEnd);
+                return { match, codeContent, resolvedPath, error: null };
             } else {
                 console.warn(`Could not resolve code file path: ${source} from ${markdownPath}`);
-                // Replace with error message
-                const errorBlock = `\`\`\`text
-Error: Could not find code file: ${source}
-\`\`\``;
-                const matchStart = match.index!;
-                const matchEnd = matchStart + fullMatch.length;
-                processedContent = processedContent.substring(0, matchStart) + errorBlock + processedContent.substring(matchEnd);
+                return { match, codeContent: null, resolvedPath: null, error: `Could not find code file: ${source}` };
             }
         } catch (error) {
             console.error(`Failed to fetch code file ${source}:`, error);
-            // Replace with error message
-            const errorBlock = `\`\`\`text
-Error loading code file: ${source}
-${error instanceof Error ? error.message : "Unknown error"}
-\`\`\``;
-            const matchStart = match.index!;
-            const matchEnd = matchStart + fullMatch.length;
-            processedContent = processedContent.substring(0, matchStart) + errorBlock + processedContent.substring(matchEnd);
+            return { 
+                match, 
+                codeContent: null, 
+                resolvedPath: null, 
+                error: `Error loading code file: ${source}\n${error instanceof Error ? error.message : "Unknown error"}` 
+            };
         }
+    });
+
+    // Wait for all code downloads to complete
+    const codeResults = await Promise.all(codeDownloadPromises);
+
+    // Process each directive in reverse order to avoid position shifting
+    for (let i = codeResults.length - 1; i >= 0; i--) {
+        const { match, codeContent, resolvedPath, error } = codeResults[i];
+        const [fullMatch, language, source, highlight, range, id] = match;
+
+        // Detect indentation of the original :::code directive
+        const matchStart = match.index!;
+        const lineStart = processedContent.lastIndexOf('\n', matchStart) + 1;
+        const indentation = processedContent.substring(lineStart, matchStart);
+
+        let replacement: string;
+        
+        if (error || !codeContent) {
+            // Replace with error message
+            replacement = `${indentation}\`\`\`text
+${indentation}${error || "Unknown error"}
+${indentation}\`\`\``;
+        } else {
+            // Create the enhanced code block with metadata
+            const fileName = source.split("/").pop() || "unknown";
+            replacement = createEnhancedCodeBlock(language, codeContent, highlight, fileName, source, indentation);
+        }
+
+        // Replace the directive with the code block
+        const matchEnd = matchStart + fullMatch.length;
+        processedContent = processedContent.substring(0, matchStart) + replacement + processedContent.substring(matchEnd);
     }
 
     // Process image directives
