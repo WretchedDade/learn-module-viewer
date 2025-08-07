@@ -81,7 +81,7 @@ export type PathType = "module-url" | "learning-path-url" | "module-folder" | "l
  * @param input The input string to analyze (URL or path)
  * @returns The detected path type
  */
-export function detectPathType(input: string): PathType {
+function detectPathType(input: string): PathType {
     const trimmedInput = input.trim();
 
     // Check if it's a URL
@@ -100,20 +100,25 @@ export function detectPathType(input: string): PathType {
 
         // Default to module for other Learn URLs
         return "module-url";
-    }
-
-    // For direct paths, we need to make assumptions or detect from path structure
-    // For now, assume module unless path contains indicators of learning path
-    if (trimmedInput.includes("/learning-paths/") || trimmedInput.includes("-path")) {
+    } else if (trimmedInput.includes("/paths/")) {
         return "learning-path-folder";
+    } else {
+        return "module-folder";
     }
+}
 
-    // Default to module for direct paths
-    return "module-folder";
+/**
+ * Converts a uid to folder path
+ * @param uid A uid in the form of 'learn.philanthropies.explore-ai-basics'
+ */
+function createPathFromUid(uid: string): string {
+    // The uids have just learn at the start but the folder path is learn-pr
+    return uid.trim().split('.').map(part => part === "learn" ? "learn-pr" : part).join("/");
 }
 
 export const pathUtilities = {
     resolveRelativePath,
-	extractFolderPathFromLearnUrl,
-	detectPathType
+    extractFolderPathFromLearnUrl,
+    detectPathType,
+    createPathFromUid
 };

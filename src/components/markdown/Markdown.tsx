@@ -21,6 +21,13 @@ export function Markdown({ content, images }: MarkdownProps) {
         h2: ({ children }: any) => <h2 className="text-lg font-semibold text-gray-100 mb-2 mt-3 first:mt-0">{children}</h2>,
         h3: ({ children }: any) => <h3 className="text-md font-medium text-gray-200 mb-2 mt-3 first:mt-0">{children}</h3>,
         p: ({ children }: any) => {
+            // Regular paragraph
+            return <p className="text-gray-300 mb-3 leading-relaxed">{children}</p>;
+        },
+        ul: ({ children }: any) => <ul className="list-disc list-outside text-gray-300 mb-3 space-y-1 pl-6">{children}</ul>,
+        ol: ({ children }: any) => <ol className="list-decimal list-outside text-gray-300 mb-3 space-y-1 pl-6">{children}</ol>,
+        li: ({ children }: any) => <li className="text-gray-300">{children}</li>,
+        blockquote: ({ children }: any) => {
             // Helper function to extract text content from React elements
             const extractTextContent = (element: any): string => {
                 if (typeof element === "string") return element;
@@ -41,13 +48,6 @@ export function Markdown({ content, images }: MarkdownProps) {
                 return <VideoBlock url={videoUrl} />;
             }
 
-            // Regular paragraph
-            return <p className="text-gray-300 mb-3 leading-relaxed">{children}</p>;
-        },
-        ul: ({ children }: any) => <ul className="list-disc list-outside text-gray-300 mb-3 space-y-1 pl-6">{children}</ul>,
-        ol: ({ children }: any) => <ol className="list-decimal list-outside text-gray-300 mb-3 space-y-1 pl-6">{children}</ol>,
-        li: ({ children }: any) => <li className="text-gray-300">{children}</li>,
-        blockquote: ({ children }: any) => {
             // Try to render as a callout first
             const callout = CalloutBlock({ children });
             if (callout) {

@@ -102,7 +102,7 @@ export function VideoBlock({ url }: VideoBlockProps) {
                                 allowFullScreen
                             />
                         </div>
-                        <div className="text-center">
+                        {/* <div className="text-center">
                             <a
                                 href={url}
                                 target="_blank"
@@ -111,7 +111,7 @@ export function VideoBlock({ url }: VideoBlockProps) {
                             >
                                 Open video in new tab
                             </a>
-                        </div>
+                        </div> */}
                     </div>
                 );
 

@@ -1,20 +1,18 @@
 import yaml from "js-yaml";
 import { fileDownloader } from "./fileDownloader";
-import { LearningPath, Module, ModuleYaml, Unit, UnitYaml } from "./githubTypes";
+import { LearningPath, LearningPathYaml, Module, ModuleYaml, Unit, UnitYaml } from "./githubTypes";
 import { markdownProcessor } from "./markdownProcessor";
 import { pathUtilities } from "./pathUtilities";
 import { githubRegex } from "./regex";
 
-async function processLearnYaml(downloadUrl: string, path: string): Promise<Unit | Module | LearningPath | null> {
+async function processLearnYaml(downloadUrl: string, path: string): Promise<Unit | Module | null> {
     const yamlContent = await fileDownloader.downloadFile(downloadUrl);
 
     if (yamlContent.startsWith("### YamlMime:ModuleUnit")) {
         return await processUnitYaml(path, yamlContent);
     } else if (yamlContent.startsWith("### YamlMime:Module")) {
         return processModuleYaml(path, yamlContent);
-    } else
-
-    return null;
+    } else return null;
 }
 
 function processModuleYaml(path: string, yamlContent: string): Module {
@@ -66,6 +64,24 @@ async function processUnitYaml(path: string, yamlContent: string): Promise<Unit>
     return unit;
 }
 
+function processLearningPathYaml(yamlContent: string): { learningPath: LearningPath; moduleUids: string[] } {
+    const learningPathYaml = yaml.load(yamlContent) as LearningPathYaml;
+
+    const learningPath: LearningPath = {
+        uid: learningPathYaml.uid,
+        title: learningPathYaml.title,
+        summary: learningPathYaml.summary,
+        iconUrl: learningPathYaml.iconUrl,
+        levels: learningPathYaml.levels,
+        roles: learningPathYaml.roles,
+        products: learningPathYaml.products,
+        modules: [],
+    };
+
+    return { learningPath, moduleUids: learningPathYaml.modules };
+}
+
 export const yamlProcessor = {
     processLearnYaml,
+    processLearningPathYaml,
 };

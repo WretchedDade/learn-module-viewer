@@ -47,26 +47,30 @@ export function ContentForm({ folderPath, setFolderPath, onLoadModule, isLoading
             </button>
 
             <div className="mt-3 text-sm text-gray-400">
-                <hr className="my-6"/>
+                <hr className="my-6" />
                 <p className="mb-2">You can provide either:</p>
                 <div className="space-y-1 ml-4">
                     <div>
-                        <span className="font-medium text-blue-400">Microsoft Learn Module URL:</span>
+                        <span className="font-medium text-blue-400">Module URL:</span>
                         <div className="text-gray-500 text-xs mt-1">https://learn.microsoft.com/en-us/training/modules/explore-ai-basics/</div>
                     </div>
                     <div>
-                        <span className="font-medium text-purple-400">Microsoft Learn Path URL:</span>
+                        <span className="font-medium text-blue-400">Module Folder:</span>
+                        <div className="text-gray-500 text-xs mt-1">learn-pr/philanthropies/explore-ai-basics</div>
+                    </div>
+                    <div>
+                        <span className="font-medium text-green-400">Learning Path URL:</span>
                         <div className="text-gray-500 text-xs mt-1">https://learn.microsoft.com/en-us/training/paths/ai-fluency/</div>
                     </div>
                     <div>
-                        <span className="font-medium text-green-400">GitHub folder path:</span>
-                        <div className="text-gray-500 text-xs mt-1">learn-pr/philanthropies/explore-ai-basics</div>
+                        <span className="font-medium text-green-400">Learning Path Folder:</span>
+                        <div className="text-gray-500 text-xs mt-1">learn-pr/paths/ai-fluency</div>
                     </div>
                 </div>
                 {pathType != null && (
-                    <div className="mt-6 p-2 bg-gray-700 rounded text-xs">
+                    <div className="mt-6 p-2 bg-gray-700 rounded-md text-xs">
                         <span className="text-gray-300">Detected: </span>
-                        <span className={isLearningPath ? "text-purple-400" : "text-blue-400"}>{isLearningPath ? "Learning Path" : "Module"}</span>
+                        <span className={isLearningPath ? "text-green-400" : "text-blue-400"}>{isLearningPath ? "Learning Path" : "Module"}</span>
                     </div>
                 )}
             </div>

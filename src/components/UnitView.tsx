@@ -1,5 +1,6 @@
 import { Unit } from "~/github/githubTypes";
 import { Markdown } from "./markdown/Markdown";
+import { useState } from "react";
 
 interface UnitViewProps {
     unit: Unit;
@@ -7,6 +8,7 @@ interface UnitViewProps {
 }
 
 export function UnitView({ unit, images = {} }: UnitViewProps) {
+    const [showRawMarkdown, setShowRawMarkdown] = useState(false);
     const formatDate = (dateStr?: string) => {
         if (!dateStr) return null;
         try {
@@ -117,11 +119,29 @@ export function UnitView({ unit, images = {} }: UnitViewProps) {
 
             {/* Content Section */}
             <div className="prose prose-lg max-w-none">
-                {unit.markdownContent  ? (
+                {unit.markdownContent ? (
                     <div>
-                        <h2 className="text-2xl font-semibold text-gray-200 mb-4">Content</h2>
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-2xl font-semibold text-gray-200">Content</h2>
+                            <button
+                                onClick={() => setShowRawMarkdown(!showRawMarkdown)}
+                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                                    showRawMarkdown
+                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                }`}
+                            >
+                                {showRawMarkdown ? 'Show Rendered' : 'Show Raw'}
+                            </button>
+                        </div>
                         <div className="bg-gray-900 rounded-lg border border-gray-200 p-6">
-                            <Markdown content={unit.markdownContent} images={images} />
+                            {showRawMarkdown ? (
+                                <pre className="whitespace-pre-wrap text-sm text-gray-300 font-mono overflow-x-auto">
+                                    {unit.markdownContent}
+                                </pre>
+                            ) : (
+                                <Markdown content={unit.markdownContent} images={images} />
+                            )}
                         </div>
                     </div>
                 ) : (

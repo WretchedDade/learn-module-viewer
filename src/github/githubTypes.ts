@@ -120,16 +120,6 @@ export interface LearningPathYaml {
     modules: string[]; // References to module UIDs
 }
 
-export interface ModuleReference {
-    uid: string;
-    title: string;
-    summary?: string;
-    estimatedDuration?: number;
-    path?: string;
-    // Full module data loaded on demand
-    moduleData?: Module;
-}
-
 export interface LearningPath {
     // Learning path metadata (flattened from LearningPathYaml)
     title?: string;
@@ -143,13 +133,7 @@ export interface LearningPath {
     uid?: string;
 
     // Content arrays
-    modules: ModuleReference[];
-
-    // Performance metrics
-    performance?: {
-        duration: number; // milliseconds
-        durationFormatted: string; // human readable
-    };
+    modules: Module[];
 }
 
 // Type guards

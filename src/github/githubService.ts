@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { fileDownloader } from "./fileDownloader";
-import { Content, isModule, isUnit, Module, Unit } from "./githubTypes";
+import { Content, isModule, isUnit, LearningPath, Module, Unit } from "./githubTypes";
 import { pathUtilities } from "./pathUtilities";
 import { utils } from "./utils";
 import { yamlProcessor } from "./yamlProcessor";
@@ -26,8 +26,6 @@ export type ContentDownloadResult =
           performance: PerformanceResults;
       };
 
-
-
 // New content-agnostic download function that routes to appropriate handler
 export const DownloadContentFromGitHub = createServerFn()
     .validator((data: ContentDownloadRequest) => data)
@@ -40,7 +38,8 @@ export const DownloadContentFromGitHub = createServerFn()
         const pathType = pathUtilities.detectPathType(data.folderPath);
 
         if (pathType === "learning-path-folder" || pathType === "learning-path-url") {
-            console.log("TODO: Route to learning path handler");
+            const learningPathFolder = pathType === "learning-path-folder" ? data.folderPath : "";
+            content = await downloadLearnLearningPath(learningPathFolder);
         } else if (pathType === "module-folder" || pathType === "module-url") {
             const moduleFolder = pathType === "module-folder" ? data.folderPath : await pathUtilities.extractFolderPathFromLearnUrl(data.folderPath);
             content = await downloadLearnModule(moduleFolder);
@@ -68,15 +67,43 @@ export const DownloadContentFromGitHub = createServerFn()
         };
     });
 
+async function downloadLearnLearningPath(learningPathFolder: string): Promise<LearningPath> {
+    const items = await fileDownloader.downloadFolderContents(learningPathFolder);
+
+    // There should only be the one index.yml
+    const yamlItem = items.find((item) => item.type === "file" && item.name === "index.yml");
+
+    if (yamlItem == null) {
+        throw new Error(`Could not find index.yml for the given folder: ${learningPathFolder}`);
+    }
+
+    const learningPathYaml = await fileDownloader.downloadFile(yamlItem.download_url);
+    const { learningPath, moduleUids } = yamlProcessor.processLearningPathYaml(learningPathYaml);
+
+    const modules = await Promise.all(
+        moduleUids.map(async (uid) => {
+            try {
+                const path = pathUtilities.createPathFromUid(uid);
+                return await downloadLearnModule(path);
+            } catch (error) {
+                // Gracefully handle errors because sometimeis the UID isn't the folder path... 🙃
+                console.error(`Error downloading module for UID ${uid}:`, error);
+                return null;
+            }
+        }),
+    );
+
+    learningPath.modules = modules.filter((module) => module != null);
+
+    return learningPath;
+}
+
 /**
  * Downloads and processes a Learn module from GitHub
  * @param moduleFolder - GitHub folder path of the module (e.g. "learn-pr/philanthropies/explore-ai-basics")
  * @returns The processed Module object
  */
 async function downloadLearnModule(moduleFolder: string): Promise<Module> {
-    // Check if the input is a URL or path
-    // const inputType = isUrlOrPath(path);
-
     const items = await fileDownloader.downloadFolderContents(moduleFolder);
     const files = items.filter((item) => item.type === "file");
 

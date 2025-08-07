@@ -60,7 +60,7 @@ async function downloadFolderContents(path: string): Promise<GithubContentItem[]
     });
 
     if (!response.ok) {
-        throw new Error(`Error fetching folder contents: ${response.statusText}`);
+        throw new Error(`Error fetching folder contents: ${response.statusText}. Path: ${path}`);
     }
 
     return await response.json();
