@@ -38,10 +38,10 @@ export const DownloadContentFromGitHub = createServerFn()
         const pathType = pathUtilities.detectPathType(data.folderPath);
 
         if (pathType === "learning-path-folder" || pathType === "learning-path-url") {
-            const learningPathFolder = pathType === "learning-path-folder" ? data.folderPath : "";
+            const learningPathFolder = pathType === "learning-path-folder" ? data.folderPath : await pathUtilities.extractFolderPathFromLearnLearningPathUrl(data.folderPath);
             content = await downloadLearnLearningPath(learningPathFolder);
         } else if (pathType === "module-folder" || pathType === "module-url") {
-            const moduleFolder = pathType === "module-folder" ? data.folderPath : await pathUtilities.extractFolderPathFromLearnUrl(data.folderPath);
+            const moduleFolder = pathType === "module-folder" ? data.folderPath : await pathUtilities.extractFolderPathFromLearnModuleUrl(data.folderPath);
             content = await downloadLearnModule(moduleFolder);
         }
 

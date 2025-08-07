@@ -36,7 +36,7 @@ function resolveRelativePath(relativePath: string, basePath: string): string {
 }
 
 // Helper function to extract folder path from Microsoft Learn module URL
-async function extractFolderPathFromLearnUrl(learnUrl: string): Promise<string> {
+async function extractFolderPathFromLearnModuleUrl(learnUrl: string): Promise<string> {
     try {
         console.log(`Fetching Learn module page: ${learnUrl}`);
 
@@ -71,6 +71,53 @@ async function extractFolderPathFromLearnUrl(learnUrl: string): Promise<string> 
     } catch (error) {
         console.error("Error extracting folder path from Learn URL:", error);
         throw new Error(`Failed to extract folder path from Learn URL: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+}
+
+async function extractFolderPathFromLearnLearningPathUrl(learnUrl: string): Promise<string> {
+    try {
+        console.log(`Fetching Learn learning path page: ${learnUrl}`);
+
+        const response = await fetch(learnUrl, {
+            headers: {
+                "User-Agent": "Learn-Module-Viewer",
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch Learn learning path page: ${response.status} ${response.statusText}`);
+        }
+
+        const html = await response.text();
+
+        // Look for the original_content_git_url meta tag
+        const metaTagRegex = /<meta\s+name="original_content_git_url"\s+content="([^"]+)"/i;
+        const match = html.match(metaTagRegex);
+
+        if (!match) {
+            throw new Error("Could not find original_content_git_url meta tag in the Learn learning path page. Make sure this is a valid Microsoft Learn learning path URL.");
+        }
+
+        const gitUrl = match[1];
+        console.log(`Found original_content_git_url: ${gitUrl}`);
+
+        // Extract the path from the GitHub URL
+        // Example: https://github.com/MicrosoftDocs/learn-pr/blob/live/learn-pr/paths/microsoft-azure-fundamentals-describe-cloud-concepts/index.yml
+        // We want: learn-pr/paths/microsoft-azure-fundamentals-describe-cloud-concepts
+        const pathRegex = /\/blob\/[^\/]+\/(.+)\/index\.yml$/;
+        const pathMatch = gitUrl.match(pathRegex);
+
+        if (!pathMatch) {
+            throw new Error("Could not extract folder path from the GitHub URL format.");
+        }
+
+        const folderPath = pathMatch[1];
+        console.log(`Extracted folder path: ${folderPath}`);
+
+        return folderPath;
+    } catch (error) {
+        console.error("Error extracting folder path from Learn learning path URL:", error);
+        throw new Error(`Failed to extract folder path from Learn learning path URL: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
 }
 
@@ -118,7 +165,8 @@ function createPathFromUid(uid: string): string {
 
 export const pathUtilities = {
     resolveRelativePath,
-    extractFolderPathFromLearnUrl,
+    extractFolderPathFromLearnModuleUrl,
+    extractFolderPathFromLearnLearningPathUrl,
     detectPathType,
     createPathFromUid
 };
