@@ -1,15 +1,13 @@
 /// <reference types="vite/client" />
-import {
-    HeadContent,
-    Link,
-    Outlet,
-    Scripts,
-    createRootRouteWithContext,
-} from "@tanstack/react-router";
+import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import {
+    HeadContent, Outlet,
+    Scripts,
+    createRootRouteWithContext
+} from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import * as React from "react";
-import type { QueryClient } from "@tanstack/react-query";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
 import appCss from "~/styles/app.css?url";
@@ -77,18 +75,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                 <HeadContent />
             </head>
             <body>
-                <div className="p-2 flex gap-2 text-lg">
-                    <Link
-                        to="/"
-                        activeProps={{
-                            className: "font-bold",
-                        }}
-                        activeOptions={{ exact: true }}
-                    >
-                        Home
-                    </Link>
-                </div>
-                <hr />
                 {children}
                 <TanStackRouterDevtools position="bottom-right" />
                 <ReactQueryDevtools buttonPosition="bottom-left" />

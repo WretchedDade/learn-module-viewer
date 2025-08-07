@@ -1,4 +1,3 @@
-
 export interface YamlMetadata {
     title: string;
     description: string;
@@ -71,42 +70,22 @@ export interface Module {
     badgeUid?: string;
     uid?: string;
 
-    // Content arrays
+    // Content arrays and maps
     units: Unit[];
-    markdownFiles: Markdown[];
-    images: Image[];
-    codeFiles: CodeFile[];
-
-    // Quick lookup maps
-    imagesByPath: Record<string, string>; // path -> dataUrl
     imageReferenceMap: Record<string, string>; // imageRef -> dataUrl (for enhanced images)
-    unitsByUid: Record<string, Unit>; // uid -> unit
-    markdownByPath: Record<string, Markdown>; // path -> markdown
-    codeFilesByPath: Record<string, CodeFile>; // path -> code file
-
-    // Performance metrics
-    performance?: {
-        duration: number; // milliseconds
-        durationFormatted: string; // human readable
-    };
 }
 
 export interface Unit {
     path: string;
-    yaml: UnitYaml;
-    markdownContent?: string;
-}
 
-export interface Markdown {
-    path: string;
-    name: string;
+    // Unit metadata (flattened from UnitYaml)
+    uid: string;
+    title: string;
+    metadata: Partial<YamlMetadata>;
+    durationInMinutes: number;
     content: string;
-}
 
-export interface Image {
-    path: string;
-    name: string;
-    dataUrl: string;
+    markdownContent?: string;
 }
 
 export interface CodeFile {
@@ -124,3 +103,67 @@ export interface CodeDirective {
     range?: string;
     id?: string;
 }
+
+// Learning Path Types
+export interface LearningPathYaml {
+    uid: string;
+    trophy?: {
+        uid: string;
+    };
+    metadata: Partial<YamlMetadata>;
+    title: string;
+    summary: string;
+    iconUrl: string;
+    levels: string[];
+    roles: string[];
+    products: string[];
+    modules: string[]; // References to module UIDs
+}
+
+export interface ModuleReference {
+    uid: string;
+    title: string;
+    summary?: string;
+    estimatedDuration?: number;
+    path?: string;
+    // Full module data loaded on demand
+    moduleData?: Module;
+}
+
+export interface LearningPath {
+    // Learning path metadata (flattened from LearningPathYaml)
+    title?: string;
+    summary?: string;
+    abstract?: string;
+    iconUrl?: string;
+    levels?: string[];
+    roles?: string[];
+    products?: string[];
+    prerequisites?: string;
+    uid?: string;
+
+    // Content arrays
+    modules: ModuleReference[];
+
+    // Performance metrics
+    performance?: {
+        duration: number; // milliseconds
+        durationFormatted: string; // human readable
+    };
+}
+
+// Type guards
+export function isUnit(content: Unit | Module | LearningPath): content is Unit {
+    return !isModule(content) && !isLearningPath(content);
+}
+
+export function isModule(content: Unit | Module | LearningPath): content is Module {
+    return "units" in content;
+}
+
+export function isLearningPath(content: Unit | Module | LearningPath): content is LearningPath {
+    return "modules" in content;
+}
+
+// Content union type
+export type Content = Module | LearningPath;
