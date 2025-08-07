@@ -73,6 +73,7 @@ function Home() {
                         images={moduleQuery.data.images}
                         markdownFiles={moduleQuery.data.markdownFiles}
                         codeFiles={moduleQuery.data.codeFiles}
+                        performance={moduleQuery.data.performance}
                     />
                 </div>
             )}

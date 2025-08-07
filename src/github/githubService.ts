@@ -8,6 +8,19 @@ interface ModuleDownloadRequest {
 
 const accessToken = process.env.GITHUB_ACCESS_TOKEN;
 
+// Helper function to format duration in milliseconds to human readable format
+function formatDuration(milliseconds: number): string {
+    if (milliseconds < 1000) {
+        return `${Math.round(milliseconds)}ms`;
+    } else if (milliseconds < 60000) {
+        return `${(milliseconds / 1000).toFixed(1)}s`;
+    } else {
+        const minutes = Math.floor(milliseconds / 60000);
+        const seconds = ((milliseconds % 60000) / 1000).toFixed(1);
+        return `${minutes}m ${seconds}s`;
+    }
+}
+
 // Helper function to create headers with optional authentication
 function createGitHubHeaders() {
     const headers: Record<string, string> = {
@@ -25,6 +38,8 @@ function createGitHubHeaders() {
 export const DownloadLearnModuleFromGitHub = createServerFn()
     .validator((data: ModuleDownloadRequest) => data)
     .handler(async ({ data }) => {
+        const startTime = performance.now();
+        
         // Log authentication status for debugging
         console.log(`GitHub API: Using ${accessToken ? "authenticated" : "unauthenticated"} requests`);
         if (!accessToken) {
@@ -37,7 +52,19 @@ export const DownloadLearnModuleFromGitHub = createServerFn()
         // Process the hierarchy into a more usable structure
         const processedModule = await processHierarchyIntoModule(hierarchy);
 
-        return processedModule;
+        const endTime = performance.now();
+        const duration = endTime - startTime;
+        
+        console.log(`Module processing completed in ${duration.toFixed(2)}ms`);
+
+        // Add performance metrics to the result
+        return {
+            ...processedModule,
+            performance: {
+                duration: Math.round(duration),
+                durationFormatted: formatDuration(duration)
+            }
+        };
     });
 
 async function downloadFolderContents(path: string) {

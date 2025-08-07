@@ -84,6 +84,12 @@ export interface Module {
     unitsByUid: Record<string, Unit>; // uid -> unit
     markdownByPath: Record<string, Markdown>; // path -> markdown
     codeFilesByPath: Record<string, CodeFile>; // path -> code file
+
+    // Performance metrics
+    performance?: {
+        duration: number; // milliseconds
+        durationFormatted: string; // human readable
+    };
 }
 
 export interface Unit {
