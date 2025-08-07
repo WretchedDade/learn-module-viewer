@@ -15,10 +15,11 @@ interface MarkdownContentProps {
     title?: string;
     previewLength?: number;
     showFullContent?: boolean;
+    expandedDisplay?: boolean; // New prop to disable collapsible wrapper
     images?: Record<string, string>; // imageRef -> data URL
 }
 
-export function MarkdownContent({ content, title = "View Content", previewLength = 500, showFullContent = false, images }: MarkdownContentProps) {
+export function MarkdownContent({ content, title = "View Content", previewLength = 500, showFullContent = false, expandedDisplay = false, images }: MarkdownContentProps) {
     const [showRaw, setShowRaw] = useState(false);
     const preview = content.substring(0, previewLength);
     const hasMore = content.length > previewLength;
@@ -178,6 +179,35 @@ export function MarkdownContent({ content, title = "View Content", previewLength
             return <img src={src} alt={alt} className="max-w-full h-auto rounded my-3" loading="lazy" {...props} />;
         },
     };
+
+    // If expandedDisplay is true, render without collapsible wrapper
+    if (expandedDisplay) {
+        return (
+            <div className="prose prose-invert max-w-none">
+                <ReactMarkdown
+                    remarkPlugins={[remarkEnhancedCodeBlocks, remarkEnhancedImages, remarkGfm, remarkBreaks]}
+                    rehypePlugins={[
+                        [
+                            rehypeHighlight,
+                            {
+                                detect: true,
+                                ignoreMissing: true,
+                                aliases: {
+                                    js: "javascript",
+                                    ts: "typescript",
+                                    jsx: "javascript",
+                                    tsx: "typescript",
+                                },
+                            },
+                        ],
+                    ]}
+                    components={markdownComponents}
+                >
+                    {content}
+                </ReactMarkdown>
+            </div>
+        );
+    }
 
     return (
         <details className="mt-2">

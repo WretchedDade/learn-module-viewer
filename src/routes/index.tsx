@@ -3,12 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { ErrorDisplay } from "~/components/ErrorDisplay";
-import { ImagesGallery } from "~/components/ImagesGallery";
-import { MarkdownFiles } from "~/components/MarkdownFiles";
-import { ModuleForm } from "~/components/ModuleForm";
-import { ModuleOverview } from "~/components/ModuleOverview";
-import { ModuleStatistics } from "~/components/ModuleStatistics";
-import { UnitsList } from "~/components/UnitsList";
+import { ModuleViewer } from "~/components/ModuleViewer";
 import { DownloadLearnModuleFromGitHub } from "~/github/githubService";
 
 export const Route = createFileRoute("/")({
@@ -42,42 +37,16 @@ function Home() {
     };
 
     return (
-        <div className="p-6 max-w-6xl mx-auto bg-gray-900 min-h-screen text-gray-100">
-            <ModuleForm
+        <div className="bg-gray-900 min-h-screen text-gray-100">
+            <ErrorDisplay error={moduleQuery.error} />
+            
+            <ModuleViewer
                 folderPath={folderPath}
                 setFolderPath={setFolderPath}
                 onLoadModule={handleLoadModule}
                 isLoading={moduleQuery.isFetching}
+                moduleData={moduleQuery.data || null}
             />
-
-            <ErrorDisplay error={moduleQuery.error} />
-
-            {moduleQuery.data && (
-                <div className="space-y-6">
-                    <ModuleOverview
-                        title={moduleQuery.data.title}
-                        summary={moduleQuery.data.summary}
-                        abstract={moduleQuery.data.abstract}
-                        levels={moduleQuery.data.levels}
-                        roles={moduleQuery.data.roles}
-                        products={moduleQuery.data.products}
-                    />
-
-                    <UnitsList units={moduleQuery.data.units} imageReferenceMap={moduleQuery.data.imageReferenceMap} />
-
-                    <ImagesGallery images={moduleQuery.data.images} />
-
-                    <MarkdownFiles markdownFiles={moduleQuery.data.markdownFiles} imageReferenceMap={moduleQuery.data.imageReferenceMap} />
-
-                    <ModuleStatistics
-                        units={moduleQuery.data.units}
-                        images={moduleQuery.data.images}
-                        markdownFiles={moduleQuery.data.markdownFiles}
-                        codeFiles={moduleQuery.data.codeFiles}
-                        performance={moduleQuery.data.performance}
-                    />
-                </div>
-            )}
         </div>
     );
 }

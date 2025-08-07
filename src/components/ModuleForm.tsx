@@ -12,10 +12,10 @@ export function ModuleForm({
     isLoading,
 }: ModuleFormProps) {
     return (
-        <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-4 text-white">
-                Learn Module Viewer
-            </h1>
+        <div className="mb-6">
+            <h2 className="text-2xl font-bold mb-4 text-white">
+                Load Module
+            </h2>
 
             <div className="mb-6">
                 <label
