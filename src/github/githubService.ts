@@ -515,13 +515,127 @@ async function processImageFile(item: GithubContentItem, module: Module) {
     }
 }
 
-// Simple function to process markdown content - replaces code directives with enhanced code blocks
-async function processMarkdownContent(content: string, markdownPath: string, hierarchy: Record<string, GithubContentItem[]>): Promise<string> {
+// Process include directives in markdown content
+async function processIncludeDirectives(content: string, markdownPath: string, hierarchy: Record<string, GithubContentItem[]>, processedIncludes: Set<string> = new Set()): Promise<string> {
+    // Pattern to match [!include[](path)] or [!include[title](path)]
+    const includeDirectiveRegex = /\[!include\[([^\]]*)\]\(([^)]+)\)\]/g;
+    
+    let processedContent = content;
+    const matches = Array.from(content.matchAll(includeDirectiveRegex));
+    
+    if (matches.length === 0) {
+        return processedContent;
+    }
+
+    // Prepare all include downloads in parallel
+    const includeDownloadPromises = matches.map(async (match) => {
+        const [fullMatch, title, includePath] = match;
+        
+        try {
+            // Resolve the relative path to absolute path
+            const resolvedPath = resolveRelativePath(includePath.trim(), markdownPath);
+            
+            if (!resolvedPath) {
+                console.warn(`Could not resolve include path: ${includePath} from ${markdownPath}`);
+                return { 
+                    match, 
+                    content: null, 
+                    resolvedPath: null, 
+                    error: `Could not resolve include path: ${includePath}` 
+                };
+            }
+
+            // Check for circular references
+            if (processedIncludes.has(resolvedPath)) {
+                console.warn(`Circular include reference detected: ${resolvedPath}`);
+                return { 
+                    match, 
+                    content: null, 
+                    resolvedPath, 
+                    error: `Circular include reference: ${includePath}` 
+                };
+            }
+
+            // Add current path to processed includes to prevent circular references
+            const newProcessedIncludes = new Set(processedIncludes);
+            newProcessedIncludes.add(resolvedPath);
+
+            // Download the include file
+            const includeContent = await downloadFile(`https://raw.githubusercontent.com/MicrosoftDocs/learn/main/${resolvedPath}`);
+            
+            // Recursively process the included content for nested includes
+            const fullyProcessedContent = await processIncludeDirectives(includeContent, resolvedPath, hierarchy, newProcessedIncludes);
+            
+            return { 
+                match, 
+                content: fullyProcessedContent, 
+                resolvedPath, 
+                error: null 
+            };
+            
+        } catch (error) {
+            console.error(`Failed to fetch include file ${includePath}:`, error);
+            return {
+                match,
+                content: null,
+                resolvedPath: null,
+                error: `Error loading include file: ${includePath}\n${error instanceof Error ? error.message : "Unknown error"}`,
+            };
+        }
+    });
+
+    // Wait for all include downloads to complete
+    const includeResults = await Promise.all(includeDownloadPromises);
+
+    // Process each include directive in reverse order to avoid position shifting
+    for (let i = includeResults.length - 1; i >= 0; i--) {
+        const { match, content: includeContent, resolvedPath, error } = includeResults[i];
+        const [fullMatch] = match;
+
+        // Detect indentation of the original include directive
+        const matchStart = match.index!;
+        const lineStart = processedContent.lastIndexOf("\n", matchStart) + 1;
+        const indentation = processedContent.substring(lineStart, matchStart);
+
+        let replacement: string;
+
+        if (error || !includeContent) {
+            // Replace with error message in a comment block
+            replacement = `${indentation}<!-- Include Error: ${error || "Unknown error"} -->`;
+        } else {
+            // Apply indentation to all lines of the included content if needed
+            if (indentation.trim() === '') {
+                // No indentation needed
+                replacement = includeContent;
+            } else {
+                // Apply indentation to each line
+                const indentedContent = includeContent
+                    .split("\n")
+                    .map((line, index) => {
+                        // Don't indent the first line if it's replacing the include directive
+                        if (index === 0) return line;
+                        return line ? indentation + line : line;
+                    })
+                    .join("\n");
+                replacement = indentedContent;
+            }
+        }
+
+        // Replace the directive with the processed content
+        const matchEnd = matchStart + fullMatch.length;
+        processedContent = processedContent.substring(0, matchStart) + replacement + processedContent.substring(matchEnd);
+    }
+
+    return processedContent;
+}
+
+async function processMarkdownContent(content: string, markdownPath: string, hierarchy: Record<string, GithubContentItem[]>, processedIncludes: Set<string> = new Set()): Promise<string> {
+    let processedContent = await processIncludeDirectives(content, markdownPath, hierarchy, processedIncludes);
+    
     // Find all code directives in the content
     const codeDirectiveRegex = /:::code\s+language="([^"]+)"\s+source="([^"]+)"(?:\s+highlight="([^"]+)")?(?:\s+range="([^"]+)")?(?:\s+id="([^"]+)")?:::/g;
 
-    let processedContent = content;
-    const matches = Array.from(content.matchAll(codeDirectiveRegex));
+    const matches = Array.from(processedContent.matchAll(codeDirectiveRegex));
 
     // Prepare all code downloads in parallel first
     const codeDownloadPromises = matches.map(async (match) => {
