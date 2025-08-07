@@ -5,6 +5,7 @@ import rehypeHighlight from "rehype-highlight";
 import { CalloutBlock } from "./CalloutBlock";
 import { EnhancedCodeBlock } from "./EnhancedCodeBlock";
 import { EnhancedImage } from "./EnhancedImage";
+import { VideoBlock } from "./VideoBlock";
 import { remarkEnhancedCodeBlocks } from "./remarkEnhancedCodeBlocks";
 import { remarkEnhancedImages } from "./remarkEnhancedImages";
 import { useState } from "react";
@@ -29,7 +30,32 @@ export function MarkdownContent({ content, title = "View Content", previewLength
         h1: ({ children }: any) => <h1 className="text-xl font-bold text-white mb-3 mt-4 first:mt-0">{children}</h1>,
         h2: ({ children }: any) => <h2 className="text-lg font-semibold text-gray-100 mb-2 mt-3 first:mt-0">{children}</h2>,
         h3: ({ children }: any) => <h3 className="text-md font-medium text-gray-200 mb-2 mt-3 first:mt-0">{children}</h3>,
-        p: ({ children }: any) => <p className="text-gray-300 mb-3 leading-relaxed">{children}</p>,
+        p: ({ children }: any) => {
+            // Helper function to extract text content from React elements
+            const extractTextContent = (element: any): string => {
+                if (typeof element === "string") return element;
+                if (Array.isArray(element))
+                    return element.map(extractTextContent).join("");
+                if (element?.props?.children)
+                    return extractTextContent(element.props.children);
+                return "";
+            };
+
+            // Get the full text content of the paragraph
+            const fullText = extractTextContent(children);
+            const trimmedText = fullText.trim();
+
+            // Check if this is a video block pattern: [!VIDEO URL]
+            const videoMatch = trimmedText.match(/^\[!VIDEO\s+(.+?)\]$/);
+            
+            if (videoMatch) {
+                const videoUrl = videoMatch[1].trim();
+                return <VideoBlock url={videoUrl} />;
+            }
+
+            // Regular paragraph
+            return <p className="text-gray-300 mb-3 leading-relaxed">{children}</p>;
+        },
         ul: ({ children }: any) => <ul className="list-disc list-outside text-gray-300 mb-3 space-y-1 pl-6">{children}</ul>,
         ol: ({ children }: any) => <ol className="list-decimal list-outside text-gray-300 mb-3 space-y-1 pl-6">{children}</ol>,
         li: ({ children }: any) => <li className="text-gray-300">{children}</li>,
