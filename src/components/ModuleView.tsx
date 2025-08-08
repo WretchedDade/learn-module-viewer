@@ -12,11 +12,21 @@ export function ModuleView({ module, onUnitSelected }: ModuleViewProps) {
 
     const totalDuration = module.units?.reduce((total, unit) => total + (unit.durationInMinutes || 0), 0) || 0;
 
+    console.log(module);
+
     return (
         <div className="p-4">
-            <h1 className="text-2xl font-bold mb-2 flex items-center">{module.title}</h1>
-            <p className="text-zinc-600 dark:text-zinc-500 text-sm mb-4">{totalDuration} minutes</p>
-            {/* <img src={learningPath.iconUrl} alt={`${learningPath.title} icon`} className="w-16 h-16 mb-4" /> */}
+            <div className="flex gap-4 mb-4">
+                <img
+                    src={`https://learn.microsoft.com/en-us/${module.iconUrl}`}
+                    alt={`${module.title} icon`}
+                    className="w-16 h-16"
+                />
+                <div>
+                    <h1 className="text-2xl font-bold mb-2 flex items-center">{module.title}</h1>
+                    <p className="text-zinc-600 dark:text-zinc-500 text-sm mb-4">{totalDuration} minutes</p>
+                </div>
+            </div>
             <p className="text-zinc-600 dark:text-zinc-300 mb-6">{module.summary}</p>
 
             {/* Tags Section */}
@@ -25,7 +35,11 @@ export function ModuleView({ module, onUnitSelected }: ModuleViewProps) {
                     <div className="mb-3">
                         <div className="flex flex-wrap gap-2">
                             {allTags.map((tag) => (
-                                <Tag rounded key={tag} className="bg-blue-600/20 text-blue-700 dark:text-blue-300 border-blue-500/30">
+                                <Tag
+                                    rounded
+                                    key={tag}
+                                    className="bg-blue-600/20 text-blue-700 dark:text-blue-300 border-blue-500/30"
+                                >
                                     {tag.replace("-", " ")}
                                 </Tag>
                             ))}
@@ -73,4 +87,3 @@ export function ModuleView({ module, onUnitSelected }: ModuleViewProps) {
         </div>
     );
 }
-

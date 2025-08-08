@@ -17,8 +17,14 @@ export function LearningPathView({ learningPath, onModuleSelected }: LearningPat
 
     return (
         <div className="p-4">
-            <h1 className="text-2xl font-bold mb-2">{learningPath.title}</h1>
-            {/* <img src={learningPath.iconUrl} alt={`${learningPath.title} icon`} className="w-16 h-16 mb-4" /> */}
+            <div className="flex gap-4 mb-4 items-center">
+                <img
+                    src={`https://learn.microsoft.com/en-us/${learningPath.iconUrl}`}
+                    alt={`${learningPath.title} icon`}
+                    className="w-16 h-16"
+                />
+                <h1 className="text-2xl font-bold mb-2">{learningPath.title}</h1>
+            </div>
             <p className="text-zinc-700 dark:text-zinc-300 mb-6">{learningPath.summary}</p>
 
             {/* Tags Section */}
@@ -27,7 +33,11 @@ export function LearningPathView({ learningPath, onModuleSelected }: LearningPat
                     <div className="mb-3">
                         <div className="flex flex-wrap gap-2">
                             {allTags.map((tag) => (
-                                <Tag rounded key={tag} className="bg-blue-600/20 text-blue-700 dark:text-blue-300 border-blue-500/30">
+                                <Tag
+                                    rounded
+                                    key={tag}
+                                    className="bg-blue-600/20 text-blue-700 dark:text-blue-300 border-blue-500/30"
+                                >
                                     {tag.replace("-", " ")}
                                 </Tag>
                             ))}
@@ -54,9 +64,7 @@ export function LearningPathView({ learningPath, onModuleSelected }: LearningPat
                                 </span>
                                 <h3 className="text-lg font-semibold dark:text-white">{module.title}</h3>
                             </div>
-                            {module.progress && (
-                                <ProgressTag progress={module.progress} />
-                            )}
+                            {module.progress && <ProgressTag progress={module.progress} />}
                         </div>
 
                         {module.summary && <p className="text-zinc-700 dark:text-zinc-300 mb-4">{module.summary}</p>}

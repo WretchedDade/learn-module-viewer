@@ -1,6 +1,4 @@
-import {
-    ArrowPathIcon
-} from "@heroicons/react/24/solid";
+import { ArrowPathIcon } from "@heroicons/react/24/solid";
 
 import { clsx } from "clsx";
 import { ContentDownloadResult } from "~/github/githubService";
@@ -27,28 +25,44 @@ interface SidePanelProps {
 }
 
 export function SidePanel({ activeTab, setActiveTab, onExperienceReset, isLoading, result }: SidePanelProps) {
-    const getTitle = () => {
-        if (activeTab.type === "learningPath") {
-            return activeTab.learningPath.title || "Learning Path";
-        } else if (activeTab.type === "module") {
-            return activeTab.learningPath?.title ?? activeTab.module.title ?? "Module";
-        } else if (activeTab.type === "unit") {
-            return activeTab.learningPath?.title ?? activeTab.module.title ?? "Module";
+    const getTitleInfo = () => {
+        if (result?.status === "success") {
+            if (isLearningPath(result.content)) {
+                return {
+                    title: result.content.title,
+                    imageUrl:
+                        result.content.iconUrl != null
+                            ? `https://learn.microsoft.com/en-us/${result.content.iconUrl}`
+                            : null,
+                };
+            }
+
+            if (isModule(result.content)) {
+                return {
+                    title: result.content.title,
+                    imageUrl:
+                        result.content.iconUrl != null
+                            ? `https://learn.microsoft.com/en-us/${result.content.iconUrl}`
+                            : null,
+                };
+            }
         }
 
-        return "Learn Player";
+        return { title: "Learn Player", imageUrl: null };
     };
+
+    const { title, imageUrl } = getTitleInfo();
 
     return (
         <aside className="w-80 bg-zinc-200 border-zinc-200 dark:bg-zinc-800 border-r dark:border-zinc-700 overflow-y-auto h-full p-4 flex flex-col">
-            <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-200 flex items-baseline justify-between">
+            <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-200 flex items-center justify-between">
                 {isLoading ? (
                     <SidePanelHeaderSkeleton />
                 ) : (
                     <>
-                        {getTitle()}
+                        {title}
                         {result?.status === "success" && (
-                            <span className="ml-2 text-xs text-zinc-600 dark:text-zinc-300 dark:bg-zinc-900 px-2 py-1 rounded-md">
+                            <span className="ml-2 text-xs text-zinc-600 dark:text-zinc-300 dark:bg-zinc-900 px-2 py-1 rounded-md self-start">
                                 {isLearningPath(result.content) ? "Learning Path" : "Module"}
                             </span>
                         )}
@@ -191,7 +205,9 @@ function ModuleOptions({ module, learningPath, activeTab, onTabSelected }: Modul
                     <div className="min-w-0 flex-1">
                         <div className="font-medium truncate">{module.title || "Untitled Module"}</div>
                         {module.summary && (
-                            <div className="text-xs text-zinc-700 dark:text-zinc-400 mt-1 line-clamp-2">{module.summary}</div>
+                            <div className="text-xs text-zinc-700 dark:text-zinc-400 mt-1 line-clamp-2">
+                                {module.summary}
+                            </div>
                         )}
                     </div>
                 </div>
