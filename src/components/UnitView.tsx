@@ -1,169 +1,129 @@
-import { Unit } from "~/github/githubTypes";
+import { Module, Unit } from "~/github/githubTypes";
 import { Markdown } from "./markdown/Markdown";
-import { useState } from "react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 
 interface UnitViewProps {
     unit: Unit;
-    images?: Record<string, string>; // imageRef -> dataUrl
+    module: Module;
+
+    onUnitSelected: (unit: Unit) => void;
+    onUnitCompleted: (nextUnit: Unit) => void;
+    onModuleCompleted: (module: Module) => void;
 }
 
-export function UnitView({ unit, images = {} }: UnitViewProps) {
-    const [showRawMarkdown, setShowRawMarkdown] = useState(false);
-    const formatDate = (dateStr?: string) => {
-        if (!dateStr) return null;
-        try {
-            return new Date(dateStr).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-            });
-        } catch {
-            return dateStr;
-        }
-    };
+export function UnitView({ unit, module, onUnitSelected, onUnitCompleted, onModuleCompleted }: UnitViewProps) {
+    const positionInModule = module.units?.findIndex((u) => u.uid === unit.uid) ?? -1;
+
+    const firstIncompleteUnit = module.units.filter((u) => u.progress !== "completed")[0];
+
+    const nextUnit =
+        positionInModule >= 0 && positionInModule < module.units.length - 1 ? module.units[positionInModule + 1] : null;
+
+    const previousUnit = positionInModule > 0 ? module.units[positionInModule - 1] : null;
+
+    const allOtherUnitsCompleted = module.units.every((u) => u.progress === "completed" || u.uid === unit.uid);
 
     return (
-        <div className="p-6 space-y-8 bg-gray-800 rounded-3xl">
-            {/* Header Section */}
-            <div className="border-b border-gray-200 pb-6">
-                <h1 className="text-3xl font-bold text-gray-200 mb-4">{unit.title}</h1>
+        <div className="p-4">
+            <h1 className="text-2xl font-bold mb-2 flex items-center">{unit.title}</h1>
 
-                {/* Unit Metadata */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                    {unit.durationInMinutes && (
-                        <div className="bg-blue-50 rounded-lg p-3">
-                            <div className="text-sm font-medium text-blue-600">Duration</div>
-                            <div className="text-lg font-semibold text-blue-900">{unit.durationInMinutes} minutes</div>
-                        </div>
-                    )}
+            <p className="text-gray-500 text-sm mb-4">{unit.durationInMinutes} minutes</p>
 
-                    {unit.uid && (
-                        <div className="bg-gray-900 rounded-lg p-3">
-                            <div className="text-sm font-medium text-gray-400">Unit ID</div>
-                            <div className="text-sm font-mono text-gray-200 break-all">{unit.uid}</div>
-                        </div>
-                    )}
-
-                    {unit.path && (
-                        <div className="bg-gray-900 rounded-lg p-3">
-                            <div className="text-sm font-medium text-gray-400">File Path</div>
-                            <div className="text-sm font-mono text-gray-200 break-all">{unit.path}</div>
-                        </div>
-                    )}
+            {unit.markdownContent != null && (
+                <div className="prose prose-lg max-w-none">
+                    <Markdown content={unit.markdownContent} images={module.imageReferenceMap} />
                 </div>
+            )}
 
-                {/* Additional Metadata */}
-                {unit.metadata && Object.keys(unit.metadata).length > 0 && (
-                    <div className="bg-gray-900 rounded-lg p-4">
-                        <h2 className="text-lg font-semibold text-gray-200 mb-3">Metadata</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                            {unit.metadata.description && (
-                                <div>
-                                    <span className="font-medium text-gray-400">Description:</span>
-                                    <p className="text-gray-200 mt-1">{unit.metadata.description}</p>
-                                </div>
-                            )}
-
-                            {unit.metadata.author && (
-                                <div>
-                                    <span className="font-medium text-gray-400">Author:</span>
-                                    <span className="text-gray-200 ml-2">{unit.metadata.author}</span>
-                                </div>
-                            )}
-
-                            {unit.metadata["ms.author"] && (
-                                <div>
-                                    <span className="font-medium text-gray-400">MS Author:</span>
-                                    <span className="text-gray-200 ml-2">{unit.metadata["ms.author"]}</span>
-                                </div>
-                            )}
-
-                            {unit.metadata["ms.date"] && (
-                                <div>
-                                    <span className="font-medium text-gray-400">Last Updated:</span>
-                                    <span className="text-gray-200 ml-2">{formatDate(unit.metadata["ms.date"])}</span>
-                                </div>
-                            )}
-
-                            {unit.metadata.manager && (
-                                <div>
-                                    <span className="font-medium text-gray-400">Manager:</span>
-                                    <span className="text-gray-200 ml-2">{unit.metadata.manager}</span>
-                                </div>
-                            )}
-
-                            {unit.metadata["ms.service"] && (
-                                <div>
-                                    <span className="font-medium text-gray-400">Service:</span>
-                                    <span className="text-gray-200 ml-2">{unit.metadata["ms.service"]}</span>
-                                </div>
-                            )}
-
-                            {unit.metadata["ms.topic"] && (
-                                <div>
-                                    <span className="font-medium text-gray-400">Topic:</span>
-                                    <span className="text-gray-200 ml-2">{unit.metadata["ms.topic"]}</span>
-                                </div>
-                            )}
-
-                            {unit.metadata["ms.custom"] && (
-                                <div>
-                                    <span className="font-medium text-gray-400">Custom:</span>
-                                    <span className="text-gray-200 ml-2">{unit.metadata["ms.custom"]}</span>
-                                </div>
-                            )}
+            {unit.markdownContent == null && (
+                <div className="bg-yellow-200 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-yellow-700" viewBox="0 0 20 20" fill="currentColor">
+                                <path
+                                    fillRule="evenodd"
+                                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                    clipRule="evenodd"
+                                />
+                            </svg>
+                        </div>
+                        <div className="ml-3">
+                            <h3 className="text-sm font-medium text-yellow-800">No Content Available</h3>
+                            <p className="text-sm text-yellow-700 mt-1">
+                                This unit doesn't have any markdown content to display.
+                            </p>
                         </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
 
-            {/* Content Section */}
-            <div className="prose prose-lg max-w-none">
-                {unit.markdownContent ? (
-                    <div>
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-2xl font-semibold text-gray-200">Content</h2>
-                            <button
-                                onClick={() => setShowRawMarkdown(!showRawMarkdown)}
-                                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                    showRawMarkdown
-                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                        : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                }`}
-                            >
-                                {showRawMarkdown ? 'Show Rendered' : 'Show Raw'}
-                            </button>
-                        </div>
-                        <div className="bg-gray-900 rounded-lg border border-gray-200 p-6">
-                            {showRawMarkdown ? (
-                                <pre className="whitespace-pre-wrap text-sm text-gray-300 font-mono overflow-x-auto">
-                                    {unit.markdownContent}
-                                </pre>
-                            ) : (
-                                <Markdown content={unit.markdownContent} images={images} />
-                            )}
-                        </div>
+            <hr className="my-6" />
+
+            {nextUnit != null && (
+                <>
+                    <h2 className="text-xl font-bold mb-2 flex items-center">Next Unit: {nextUnit.title}</h2>
+                    <div className="flex items-center mt-4 gap-4">
+                        {previousUnit != null && <PreviousButton onClick={() => onUnitSelected(previousUnit)} />}
+                        <NextButton onClick={() => onUnitCompleted(nextUnit)}>Next</NextButton>
                     </div>
-                ) : (
-                    <div className="bg-yellow-200 border border-yellow-200 rounded-lg p-4">
-                        <div className="flex items-center">
-                            <div className="flex-shrink-0">
-                                <svg className="h-5 w-5 text-yellow-700" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        fillRule="evenodd"
-                                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                                        clipRule="evenodd"
-                                    />
-                                </svg>
-                            </div>
-                            <div className="ml-3">
-                                <h3 className="text-sm font-medium text-yellow-800">No Content Available</h3>
-                                <p className="text-sm text-yellow-700 mt-1">This unit doesn't have any markdown content to display.</p>
-                            </div>
-                        </div>
+                </>
+            )}
+
+            {nextUnit == null && !allOtherUnitsCompleted && (
+                <>
+                    <h2 className="text-xl font-bold mb-2 flex items-center">Module incomplete:</h2>
+
+                    <div className="flex items-center mt-4 gap-4">
+                        {previousUnit != null && <PreviousButton onClick={() => onUnitSelected(previousUnit)} />}
+                        <NextButton onClick={() => onUnitCompleted(firstIncompleteUnit)}>Go back to finish</NextButton>
                     </div>
-                )}
-            </div>
+                </>
+            )}
+
+            {nextUnit == null && allOtherUnitsCompleted && (
+                <>
+                    <h2 className="text-xl font-bold mb-2 flex items-center">All units complete:</h2>
+
+                    <div className="flex items-center mt-4 gap-4">
+                        {previousUnit != null && <PreviousButton onClick={() => onUnitSelected(previousUnit)} />}
+                        <NextButton onClick={() => onModuleCompleted(module)} hideIcon>
+                            Complete Module
+                        </NextButton>
+                    </div>
+                </>
+            )}
         </div>
+    );
+}
+
+function PreviousButton({ onClick }: { onClick: () => void }) {
+    return (
+        <button
+            onClick={onClick}
+            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors flex items-center"
+        >
+            <ChevronLeftIcon className="w-5 h-5 mr-2" />
+            <span>Previous</span>
+        </button>
+    );
+}
+
+function NextButton({
+    children,
+    onClick,
+    hideIcon = false,
+}: {
+    children: React.ReactNode;
+    onClick: () => void;
+    hideIcon?: boolean;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors flex items-center"
+        >
+            <span>{children}</span>
+            {!hideIcon && <ChevronRightIcon className="w-5 h-5 ml-2" />}
+        </button>
     );
 }

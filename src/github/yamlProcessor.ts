@@ -32,6 +32,8 @@ function processModuleYaml(path: string, yamlContent: string): Module {
 
         units: [],
         imageReferenceMap: {},
+
+        progress: "not-started", // Default progress state
     };
 }
 
@@ -46,6 +48,8 @@ async function processUnitYaml(path: string, yamlContent: string): Promise<Unit>
         metadata: unitYaml.metadata,
         durationInMinutes: unitYaml.durationInMinutes,
         content: unitYaml.content,
+
+        progress: "not-started", // Default progress state
     };
 
     // Look for include tags in the content property to find the markdown file
@@ -75,7 +79,10 @@ function processLearningPathYaml(yamlContent: string): { learningPath: LearningP
         levels: learningPathYaml.levels,
         roles: learningPathYaml.roles,
         products: learningPathYaml.products,
+        
         modules: [],
+
+        progress: "not-started", // Default progress state
     };
 
     return { learningPath, moduleUids: learningPathYaml.modules };

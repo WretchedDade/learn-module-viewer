@@ -73,7 +73,11 @@ export interface Module {
     // Content arrays and maps
     units: Unit[];
     imageReferenceMap: Record<string, string>; // imageRef -> dataUrl (for enhanced images)
+    
+    progress: Progress;
 }
+
+export type Progress = "not-started" | "started" | "completed";
 
 export interface Unit {
     path: string;
@@ -86,6 +90,8 @@ export interface Unit {
     content: string;
 
     markdownContent?: string;
+    
+    progress: Progress;
 }
 
 export interface CodeFile {
@@ -134,6 +140,8 @@ export interface LearningPath {
 
     // Content arrays
     modules: Module[];
+    
+    progress: Progress;
 }
 
 // Type guards
