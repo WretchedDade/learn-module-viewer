@@ -1,6 +1,7 @@
 import { Module, Unit } from "~/github/githubTypes";
 import { ProgressTag } from "./ProgressTag";
 import { Tag } from "./Tag";
+import { Markdown } from "./markdown/Markdown";
 
 interface ModuleViewProps {
     module: Module;
@@ -51,10 +52,14 @@ export function ModuleView({ module, onUnitSelected }: ModuleViewProps) {
             <hr className="mt-8 my-6" />
 
             <h2 className="text-xl font-bold mb-2">Learning Objectives</h2>
-            <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">{module.abstract}</p>
+            <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                <Markdown content={module.abstract ?? ""} images={{}} />
+            </p>
 
             <h2 className="text-xl font-bold mb-2 mt-6">Prerequisites</h2>
-            <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">{module.prerequisites}</p>
+            <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                <Markdown content={module.prerequisites ?? ""} images={{}} />
+            </p>
 
             {/* Units Section */}
             {module.units && module.units.length > 0 && (
