@@ -17,16 +17,16 @@ export function Overview({ folderPath, setFolderPath, onLoadModule, isLoading, r
             <ContentForm folderPath={folderPath} setFolderPath={setFolderPath} onLoadModule={onLoadModule} isLoading={isLoading} />
             
             {result && (
-                <div className="dark:bg-zinc-800 rounded-3xl p-6 border">
+                <div className="bg-zinc-100 dark:bg-zinc-800 rounded-3xl p-6 border">
                     {result.status === "success" ? (
                         <div className="space-y-6">
                             {/* Success Header */}
-                            <div className="border-b dark:border-zinc-700 pb-4">
+                            <div className="border-b border-zinc-200 dark:border-zinc-700 pb-4">
                                 <div className="flex items-center gap-3 mb-2">
                                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                                     <h2 className="text-xl font-semibold dark:text-zinc-200">Content Loaded Successfully</h2>
                                 </div>
-                                <p className="dark:text-zinc-400 text-sm">
+                                <p className="text-zinc-700 dark:text-zinc-400 text-sm">
                                     Loaded in {result.performance.durationFormatted}
                                 </p>
                             </div>

@@ -64,7 +64,7 @@ export const Route = createRootRouteWithContext<{
 function RootComponent() {
     return (
         <RootDocument>
-            <ThemeProvider defaultTheme="dark" storageKey="learn-module-viewer-theme">
+            <ThemeProvider defaultTheme="system" storageKey="learn-module-viewer-theme">
                 <Outlet />
             </ThemeProvider>
         </RootDocument>

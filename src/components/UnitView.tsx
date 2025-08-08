@@ -1,6 +1,6 @@
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { Module, Unit } from "~/github/githubTypes";
 import { Markdown } from "./markdown/Markdown";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 
 interface UnitViewProps {
     unit: Unit;
@@ -100,7 +100,7 @@ function PreviousButton({ onClick }: { onClick: () => void }) {
     return (
         <button
             onClick={onClick}
-            className="bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-600 transition-colors flex items-center"
+            className="bg-zinc-300 dark:bg-zinc-700 dark:text-white px-4 py-2 rounded hover:bg-zinc-400 dark:hover:bg-zinc-600 transition-colors flex items-center"
         >
             <ChevronLeftIcon className="w-5 h-5 mr-2" />
             <span>Previous</span>
@@ -120,7 +120,7 @@ function NextButton({
     return (
         <button
             onClick={onClick}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors flex items-center"
+            className="bg-blue-300 dark:bg-blue-600 dark:text-white px-4 py-2 rounded dark:hover:bg-blue-700 hover:bg-blue-400 transition-colors flex items-center"
         >
             <span>{children}</span>
             {!hideIcon && <ChevronRightIcon className="w-5 h-5 ml-2" />}

@@ -8,7 +8,7 @@ export function Skeleton({ className }: SkeletonProps) {
     return (
         <div
             className={clsx(
-                "animate-pulse bg-zinc-600 rounded",
+                "animate-pulse bg-zinc-200 dark:bg-zinc-600 rounded",
                 className
             )}
         />
@@ -19,7 +19,7 @@ export function ModuleSkeleton() {
     return (
         <div className="">
             {/* Module header skeleton */}
-            <div className="w-full px-4 py-2 bg-zinc-700 rounded-t-md">
+            <div className="w-full px-4 py-2 bg-zinc-300 dark:bg-zinc-700 rounded-t-md">
                 <div className="flex">
                     {/* Progress icon skeleton */}
                     <div className="mt-1 mr-3">
@@ -35,7 +35,7 @@ export function ModuleSkeleton() {
             </div>
             
             {/* Units skeleton */}
-            <div className="p-2 space-y-2 bg-zinc-900 rounded-b-md">
+            <div className="p-2 space-y-2 bg-zinc-100 dark:bg-zinc-900 rounded-b-md">
                 {Array.from({ length: 3 }).map((_, index) => (
                     <UnitSkeleton key={index} />
                 ))}
@@ -46,7 +46,7 @@ export function ModuleSkeleton() {
 
 export function UnitSkeleton() {
     return (
-        <div className="w-full pl-3 pr-2 py-2 text-sm rounded-md bg-zinc-800">
+        <div className="w-full pl-3 pr-2 py-2 text-sm rounded-md bg-zinc-300 dark:bg-zinc-800">
             <div className="flex items-center">
                 {/* Progress icon skeleton */}
                 <div className="mr-3">
@@ -67,7 +67,7 @@ export function LearningPathSkeleton() {
     return (
         <div className="space-y-4">
             {/* Learning path overview skeleton */}
-            <div className="w-full p-2 bg-zinc-700 rounded-md">
+            <div className="w-full p-2 bg-zinc-300 dark:bg-zinc-700 rounded-md">
                 <Skeleton className="h-4 w-20" />
             </div>
             

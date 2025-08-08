@@ -1,21 +1,12 @@
 import {
-    BookOpenIcon,
-    DocumentTextIcon,
-    HomeModernIcon,
-    AcademicCapIcon,
-    ArrowPathIcon,
-    CheckCircleIcon,
-    MinusCircleIcon,
-    EllipsisHorizontalIcon,
-    PlayIcon,
+    ArrowPathIcon
 } from "@heroicons/react/24/solid";
-import { EllipsisHorizontalCircleIcon, PlayCircleIcon } from "@heroicons/react/24/outline";
 
 import { clsx } from "clsx";
 import { ContentDownloadResult } from "~/github/githubService";
 import { isLearningPath, isModule, LearningPath, Module, Unit } from "~/github/githubTypes";
 import { ProgressIcon } from "./ProgressIcon";
-import { SidePanelHeaderSkeleton, LearningPathSkeleton, ModuleSkeleton } from "./SkeletonLoading";
+import { LearningPathSkeleton, SidePanelHeaderSkeleton } from "./SkeletonLoading";
 import { ThemeToggleButton } from "./ThemeToggle";
 
 type LearningPathTab = { type: "learningPath"; learningPath: LearningPath };

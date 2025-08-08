@@ -1,7 +1,6 @@
 import { LearningPath, Module } from "~/github/githubTypes";
-import clsx from "clsx";
-import { Tag } from "./Tag";
 import { ProgressTag } from "./ProgressTag";
+import { Tag } from "./Tag";
 
 interface LearningPathViewProps {
     learningPath: LearningPath;
@@ -20,7 +19,7 @@ export function LearningPathView({ learningPath, onModuleSelected }: LearningPat
         <div className="p-4">
             <h1 className="text-2xl font-bold mb-2">{learningPath.title}</h1>
             {/* <img src={learningPath.iconUrl} alt={`${learningPath.title} icon`} className="w-16 h-16 mb-4" /> */}
-            <p className="text-zinc-300 mb-6">{learningPath.summary}</p>
+            <p className="text-zinc-700 dark:text-zinc-300 mb-6">{learningPath.summary}</p>
 
             {/* Tags Section */}
             {allTags.length > 0 && (
@@ -28,7 +27,7 @@ export function LearningPathView({ learningPath, onModuleSelected }: LearningPat
                     <div className="mb-3">
                         <div className="flex flex-wrap gap-2">
                             {allTags.map((tag) => (
-                                <Tag rounded key={tag} className="bg-blue-600/20 text-blue-300border-blue-500/30">
+                                <Tag rounded key={tag} className="bg-blue-600/20 text-blue-700 dark:text-blue-300 border-blue-500/30">
                                     {tag.replace("-", " ")}
                                 </Tag>
                             ))}
@@ -41,29 +40,29 @@ export function LearningPathView({ learningPath, onModuleSelected }: LearningPat
 
             {/* Modules Section */}
             <div className="space-y-4">
-                <h2 className="text-xl font-semibold text-white mb-4">Modules</h2>
+                <h2 className="text-xl font-semibold dark:text-white mb-4">Modules</h2>
                 {learningPath.modules.map((module, index) => (
                     <button
                         key={module.uid}
                         onClick={() => onModuleSelected(module)}
-                        className="bg-zinc-800/50 border border-zinc-700 rounded-lg p-6 hover:bg-zinc-800 transition-colors w-full text-left"
+                        className="bg-zinc-200 dark:bg-zinc-800/50 border border-zinc-700 rounded-lg p-6 hover:bg-zinc-300 dark:hover:bg-zinc-800 transition-colors w-full text-left"
                     >
                         <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center gap-3">
-                                <span className="flex items-center justify-center w-8 h-8 bg-blue-600 text-white text-sm font-semibold rounded-full">
+                                <span className="flex items-center justify-center w-8 h-8 bg-blue-300 dark:bg-blue-600 dark:text-white text-sm font-semibold rounded-full">
                                     {index + 1}
                                 </span>
-                                <h3 className="text-lg font-semibold text-white">{module.title}</h3>
+                                <h3 className="text-lg font-semibold dark:text-white">{module.title}</h3>
                             </div>
                             {module.progress && (
                                 <ProgressTag progress={module.progress} />
                             )}
                         </div>
 
-                        {module.summary && <p className="text-zinc-300 mb-4">{module.summary}</p>}
+                        {module.summary && <p className="text-zinc-700 dark:text-zinc-300 mb-4">{module.summary}</p>}
 
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4 text-sm text-zinc-400">
+                            <div className="flex items-center gap-4 text-sm text-zinc-600 dark:text-zinc-400">
                                 {module.units && (
                                     <span className="flex items-center gap-1">
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

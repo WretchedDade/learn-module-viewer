@@ -17,16 +17,16 @@ interface MarkdownProps {
 export function Markdown({ content, images }: MarkdownProps) {
     const markdownComponents = {
         // Custom styling for markdown elements to match dark theme
-        h1: ({ children }: any) => <h1 className="text-xl font-bold text-white mb-3 mt-4 first:mt-0">{children}</h1>,
-        h2: ({ children }: any) => <h2 className="text-lg font-semibold text-zinc-100 mb-2 mt-3 first:mt-0">{children}</h2>,
-        h3: ({ children }: any) => <h3 className="text-md font-medium text-zinc-200 mb-2 mt-3 first:mt-0">{children}</h3>,
+        h1: ({ children }: any) => <h1 className="text-xl font-bold text-zinc-900 dark:text-white mb-3 mt-4 first:mt-0">{children}</h1>,
+        h2: ({ children }: any) => <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-100 mb-2 mt-3 first:mt-0">{children}</h2>,
+        h3: ({ children }: any) => <h3 className="text-md font-medium text-zinc-700 dark:text-zinc-200 mb-2 mt-3 first:mt-0">{children}</h3>,
         p: ({ children }: any) => {
             // Regular paragraph
-            return <p className="text-zinc-300 mb-3 leading-relaxed">{children}</p>;
+            return <p className="text-zinc-700 dark:text-zinc-300 mb-3 leading-relaxed">{children}</p>;
         },
-        ul: ({ children }: any) => <ul className="list-disc list-outside text-zinc-300 mb-3 space-y-1 pl-6">{children}</ul>,
-        ol: ({ children }: any) => <ol className="list-decimal list-outside text-zinc-300 mb-3 space-y-1 pl-6">{children}</ol>,
-        li: ({ children }: any) => <li className="text-zinc-300">{children}</li>,
+        ul: ({ children }: any) => <ul className="list-disc list-outside text-zinc-700 dark:text-zinc-300 mb-3 space-y-1 pl-6">{children}</ul>,
+        ol: ({ children }: any) => <ol className="list-decimal list-outside text-zinc-700 dark:text-zinc-300 mb-3 space-y-1 pl-6">{children}</ol>,
+        li: ({ children }: any) => <li className="text-zinc-700 dark:text-zinc-300">{children}</li>,
         blockquote: ({ children }: any) => {
             // Helper function to extract text content from React elements
             const extractTextContent = (element: any): string => {
@@ -55,7 +55,7 @@ export function Markdown({ content, images }: MarkdownProps) {
             }
 
             // Regular blockquote
-            return <blockquote className="border-l-4 border-blue-500 pl-4 italic text-zinc-400 my-3">{children}</blockquote>;
+            return <blockquote className="border-l-4 border-blue-500 pl-4 italic text-zinc-600 dark:text-zinc-400 my-3">{children}</blockquote>;
         },
         code: ({ node, inline, className, children, ...props }: any) => {
             // Check if this is inline code (either inline=true or no parent pre element)
@@ -71,7 +71,7 @@ export function Markdown({ content, images }: MarkdownProps) {
             } else {
                 // Inline code
                 return (
-                    <code className="bg-zinc-800 p-1 rounded text-sm font-mono" {...props}>
+                    <code className="bg-zinc-200 dark:bg-zinc-800 p-1 rounded text-sm font-mono" {...props}>
                         {children}
                     </code>
                 );
@@ -102,15 +102,15 @@ export function Markdown({ content, images }: MarkdownProps) {
             // Normal pre block with optional language label in top right
             return (
                 <div className="relative mb-3">
-                    <pre className="bg-zinc-800 overflow-x-auto p-3 rounded" {...props}>
+                    <pre className="bg-zinc-200 dark:bg-zinc-800 overflow-x-auto p-3 rounded" {...props}>
                         {children}
                     </pre>
-                    {language && <div className="absolute top-2 right-2 bg-zinc-700 px-2 py-1 rounded text-xs font-mono text-zinc-400">{language}</div>}
+                    {language && <div className="absolute top-2 right-2 bg-zinc-300 dark:bg-zinc-700 px-2 py-1 rounded text-xs font-mono text-zinc-700 dark:text-zinc-400">{language}</div>}
                 </div>
             );
         },
         a: ({ children, href }: any) => (
-            <a href={href} className="text-blue-400 hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer">
+            <a href={href} className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer">
                 {children}
             </a>
         ),
@@ -119,8 +119,8 @@ export function Markdown({ content, images }: MarkdownProps) {
                 <table className="min-w-full border-collapse border border-zinc-600">{children}</table>
             </div>
         ),
-        th: ({ children }: any) => <th className="border border-zinc-600 bg-zinc-700 text-zinc-200 px-3 py-2 text-left font-semibold">{children}</th>,
-        td: ({ children }: any) => <td className="border border-zinc-600 text-zinc-300 px-3 py-2">{children}</td>,
+        th: ({ children }: any) => <th className="border border-zinc-600 bg-zinc-300 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-3 py-2 text-left font-semibold">{children}</th>,
+        td: ({ children }: any) => <td className="border border-zinc-600 text-zinc-700 dark:text-zinc-300 px-3 py-2">{children}</td>,
         div: ({ className, ...props }: any) => {
             // Handle enhanced code blocks
             if (className?.includes("enhanced-code-block")) {

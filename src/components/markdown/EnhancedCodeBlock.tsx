@@ -43,21 +43,21 @@ export function EnhancedCodeBlock({
     const highlightedLines = parseHighlightRanges(highlight || '');
     
     return (
-        <div className="my-4 rounded-lg overflow-hidden border border-zinc-600">
+        <div className="my-4 rounded-lg overflow-hidden border border-zinc-300 dark:border-zinc-600">
             {/* Header with file info */}
-            <div className="bg-zinc-800 px-4 py-2 border-b border-zinc-600">
+            <div className="bg-zinc-100 dark:bg-zinc-800 px-4 py-2 border-b border-zinc-300 dark:border-zinc-600">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <span className="text-zinc-400 text-sm">📄</span>
-                        <span className="text-zinc-300 text-sm font-mono">
+                        <span className="text-zinc-700 dark:text-zinc-400 text-sm">📄</span>
+                        <span className="text-zinc-700 dark:text-zinc-300 text-sm font-mono">
                             {filename || 'Code'}
                         </span>
-                        <span className="text-zinc-500 text-xs px-2 py-1 bg-zinc-700 rounded">
+                        <span className="text-zinc-500 text-xs px-2 py-1 bg-zinc-300 dark:bg-zinc-700 rounded">
                             {language}
                         </span>
                     </div>
                     {highlight && (
-                        <span className="text-zinc-400 text-xs">
+                        <span className="text-zinc-700 dark:text-zinc-400 text-xs">
                             Lines: {highlight}
                         </span>
                     )}
@@ -65,10 +65,10 @@ export function EnhancedCodeBlock({
             </div>
             
             {/* Code content */}
-            <div className="bg-zinc-900 overflow-x-auto">
+            <div className="bg-zinc-50 dark:bg-zinc-900 overflow-x-auto">
                 <div className="flex">
                     {/* Line numbers */}
-                    <div className="flex-shrink-0 bg-zinc-800 px-3 py-3 border-r border-zinc-600">
+                    <div className="flex-shrink-0 bg-zinc-100 dark:bg-zinc-800 px-3 py-3 border-r border-zinc-600">
                         {lines.map((_, index) => {
                             const lineNum = index + 1;
                             const isHighlighted = highlightedLines.has(lineNum);
@@ -77,8 +77,8 @@ export function EnhancedCodeBlock({
                                     key={index}
                                     className={`text-right text-xs leading-6 font-mono ${
                                         isHighlighted 
-                                            ? 'text-yellow-400 font-bold' 
-                                            : 'text-zinc-500'
+                                            ? 'text-yellow-800 dark:text-yellow-400 font-bold' 
+                                            : 'text-zinc-900 dark:text-zinc-500'
                                     }`}
                                     style={{ minWidth: '3rem' }}
                                 >
@@ -99,12 +99,12 @@ export function EnhancedCodeBlock({
                                     key={index}
                                     className={`font-mono text-sm leading-6 ${
                                         isHighlighted 
-                                            ? 'bg-yellow-900/30 border-l-2 border-yellow-400 pl-2 -ml-2' 
+                                            ? 'bg-yellow-300/30 dark:bg-yellow-900/30 border-l-2 border-yellow-400 pl-2 -ml-2' 
                                             : ''
                                     }`}
                                 >
-                                    {trimmedLine.length === 0 && <span className="text-zinc-500">&nbsp;</span>}
-                                    {trimmedLine.length > 0 && <code className="text-zinc-300">{trimmedLine}</code>}
+                                    {trimmedLine.length === 0 && <span className="text-zinc-200 dark:text-zinc-500">&nbsp;</span>}
+                                    {trimmedLine.length > 0 && <code className="text-zinc-900 dark:text-zinc-300">{trimmedLine}</code>}
                                 </div>
                             );
                         })}
@@ -114,8 +114,8 @@ export function EnhancedCodeBlock({
             
             {/* Footer with source info */}
             {source && (
-                <div className="bg-zinc-800 px-4 py-2 border-t border-zinc-600">
-                    <span className="text-zinc-400 text-xs">Source: {source}</span>
+                <div className="bg-zinc-100 dark:bg-zinc-800 px-4 py-2 border-t border-zinc-600">
+                    <span className="text-zinc-700 dark:text-zinc-400 text-xs">Source: {source}</span>
                 </div>
             )}
         </div>
