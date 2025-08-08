@@ -49,15 +49,15 @@ export function SidePanel({ activeTab, setActiveTab, onExperienceReset, isLoadin
     };
 
     return (
-        <aside className="w-80 dark:bg-zinc-800 border-r dark:border-zinc-700 overflow-y-auto h-full p-4 flex flex-col">
-            <h2 className="text-xl font-semibold dark:text-zinc-200 flex items-baseline justify-between">
+        <aside className="w-80 bg-zinc-200 border-zinc-200 dark:bg-zinc-800 border-r dark:border-zinc-700 overflow-y-auto h-full p-4 flex flex-col">
+            <h2 className="text-xl font-semibold text-zinc-700 dark:text-zinc-200 flex items-baseline justify-between">
                 {isLoading ? (
                     <SidePanelHeaderSkeleton />
                 ) : (
                     <>
                         {getTitle()}
                         {result?.status === "success" && (
-                            <span className="ml-2 text-xs dark:text-zinc-300 dark:bg-zinc-900 px-2 py-1 rounded-md">
+                            <span className="ml-2 text-xs text-zinc-600 dark:text-zinc-300 dark:bg-zinc-900 px-2 py-1 rounded-md">
                                 {isLearningPath(result.content) ? "Learning Path" : "Module"}
                             </span>
                         )}
@@ -96,7 +96,7 @@ export function SidePanel({ activeTab, setActiveTab, onExperienceReset, isLoadin
                         <div className="flex justify-between items-center gap-4">
                             <button
                                 onClick={onExperienceReset}
-                                className="w-full text-left px-3 py-2 rounded-md dark:hover:bg-blue-500 dark:active:bg-blue-400 transition-colors"
+                                className="w-full text-left px-3 py-2 rounded-md hover:text-white active:text-white hover:bg-blue-500 active:bg-blue-600 dark:active:bg-blue-400 transition-colors"
                             >
                                 <div className="flex items-center">
                                     <ArrowPathIcon className="w-4 h-4 mr-2" />
@@ -110,7 +110,7 @@ export function SidePanel({ activeTab, setActiveTab, onExperienceReset, isLoadin
 
                 {/* No Data State */}
                 {result == null && !isLoading && (
-                    <div className="mt-2 dark:text-zinc-400 text-sm grow">
+                    <div className="mt-2 text-zinc-600 dark:text-zinc-400 text-sm grow">
                         Learning path, modules, and units will appear here once you load them from Microsoft Learn or
                         GitHub.
                     </div>
@@ -141,8 +141,8 @@ function LearningPathOptions({ learningPath, activeTab, onTabSelected }: Learnin
             <button
                 onClick={() => onTabSelected({ type: "learningPath", learningPath })}
                 className={clsx("w-full text-left p-2 dark:text-zinc-200 rounded-md transition-colors", {
-                    "dark:bg-blue-600": isLearningPathActive,
-                    "dark:hover:bg-zinc-700": !isLearningPathActive,
+                    "dark:bg-blue-600 bg-blue-300 text-zinc-900": isLearningPathActive,
+                    "dark:hover:bg-zinc-700 text-zinc-900 hover:bg-blue-300": !isLearningPathActive,
                 })}
             >
                 Overview
@@ -186,7 +186,7 @@ function ModuleOptions({ module, learningPath, activeTab, onTabSelected }: Modul
             <button
                 onClick={() => onTabSelected({ type: "module", module, learningPath })}
                 className={clsx(
-                    "w-full text-left px-4 py-2 transition-colors rounded-md dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600 dark:hover:text-white",
+                    "w-full text-left px-4 py-2 transition-colors rounded-md bg-zinc-300 text-zinc-800 hover:bg-zinc-400 dark:bg-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-600 dark:hover:text-white",
                     {
                         "rounded-b-none": isExpanded,
                     },
@@ -200,7 +200,7 @@ function ModuleOptions({ module, learningPath, activeTab, onTabSelected }: Modul
                     <div className="min-w-0 flex-1">
                         <div className="font-medium truncate">{module.title || "Untitled Module"}</div>
                         {module.summary && (
-                            <div className="text-xs dark:text-zinc-400 mt-1 line-clamp-2">{module.summary}</div>
+                            <div className="text-xs text-zinc-700 dark:text-zinc-400 mt-1 line-clamp-2">{module.summary}</div>
                         )}
                     </div>
                 </div>
@@ -208,13 +208,13 @@ function ModuleOptions({ module, learningPath, activeTab, onTabSelected }: Modul
 
             {/* Units list - only show when expanded */}
             {module.units && module.units.length > 0 && isExpanded && (
-                <div className="p-2 space-y-2 dark:bg-zinc-900 rounded-b-md">
+                <div className="p-2 space-y-2 bg-zinc-100 dark:bg-zinc-900 rounded-b-md">
                     {module.units.map((unit, index) => (
                         <button
                             title={unit.title}
                             key={unit.uid || index}
                             onClick={() => onTabSelected({ type: "unit", unit, module, learningPath })}
-                            className="w-full text-left pl-3 pr-2 py-2 text-sm rounded-md transition-colors dark:text-zinc-200 dark:hover:bg-zinc-700 dark:hover:text-white"
+                            className="w-full text-left pl-3 pr-2 py-2 text-sm rounded-md transition-colors hover:bg-zinc-200 hover:text-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700 dark:hover:text-white"
                         >
                             <div className="flex items-center">
                                 <ProgressIcon progress={isUnitActive(unit) ? "active" : unit.progress} />
@@ -223,7 +223,7 @@ function ModuleOptions({ module, learningPath, activeTab, onTabSelected }: Modul
                                         {index + 1}. {unit.title}
                                     </div>
                                     {unit.durationInMinutes && (
-                                        <div className="text-xs dark:text-zinc-400 mt-1">
+                                        <div className="text-xs text-zinc-800 dark:text-zinc-400 mt-1">
                                             {unit.durationInMinutes} min
                                         </div>
                                     )}
