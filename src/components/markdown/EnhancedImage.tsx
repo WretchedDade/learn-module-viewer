@@ -16,11 +16,11 @@ export function EnhancedImage({
         
         switch (type) {
             case "content":
-                return `${baseClasses} border border-gray-600 shadow-lg`;
+                return `${baseClasses} border border-zinc-600 shadow-lg`;
             case "diagram":
                 return `${baseClasses} border-2 border-blue-500 bg-white p-2`;
             case "screenshot":
-                return `${baseClasses} border border-gray-500 shadow-xl`;
+                return `${baseClasses} border border-zinc-500 shadow-xl`;
             case "icon":
                 return "w-8 h-8 inline-block";
             default:
@@ -50,7 +50,7 @@ export function EnhancedImage({
                 loading="lazy"
             />
             {(type === "content" || type === "diagram" || type === "screenshot") && alt && (
-                <div className="mt-2 text-sm text-gray-400 italic text-center">
+                <div className="mt-2 text-sm text-zinc-400 italic text-center">
                     {alt}
                 </div>
             )}

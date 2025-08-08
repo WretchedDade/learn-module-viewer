@@ -89,13 +89,13 @@ export function CalloutBlock({ children }: CalloutBlockProps) {
                         >
                             {calloutType}
                         </div>
-                        <div className="text-gray-300">
+                        <div className="text-zinc-300">
                             <ReactMarkdown
                                 remarkPlugins={[remarkGfm, remarkBreaks]}
                                 components={{
                                     // Basic components for callout content (no recursive callouts)
                                     p: ({ children }: any) => (
-                                        <p className="text-gray-300 mb-2 leading-relaxed last:mb-0">
+                                        <p className="text-zinc-300 mb-2 leading-relaxed last:mb-0">
                                             {children}
                                         </p>
                                     ),
@@ -106,21 +106,21 @@ export function CalloutBlock({ children }: CalloutBlockProps) {
                                     }: any) =>
                                         inline ? (
                                             <code
-                                                className="bg-gray-800 text-cyan-300 px-1 py-0.5 rounded text-sm font-mono"
+                                                className="bg-zinc-800 text-cyan-300 px-1 py-0.5 rounded text-sm font-mono"
                                                 {...props}
                                             >
                                                 {children}
                                             </code>
                                         ) : (
                                             <code
-                                                className="block bg-gray-800 p-2 rounded text-sm font-mono"
+                                                className="block bg-zinc-800 p-2 rounded text-sm font-mono"
                                                 {...props}
                                             >
                                                 {children}
                                             </code>
                                         ),
                                     strong: ({ children }: any) => (
-                                        <strong className="font-semibold text-gray-100">
+                                        <strong className="font-semibold text-zinc-100">
                                             {children}
                                         </strong>
                                     ),

@@ -23,7 +23,7 @@ export function ProgressIcon({ className, progress, size = 6, position = "left" 
             case "not-started":
                 return <div />;
             case "started":
-                return <EllipsisHorizontalCircleIcon className={clsx(iconClassName, "text-gray-200")} />;
+                return <EllipsisHorizontalCircleIcon className={clsx(iconClassName, "text-zinc-200")} />;
             case "active":
                 return <PlayCircleIcon className={`${iconClassName} text-blue-200`} />;
             case "completed":
@@ -39,7 +39,7 @@ export function ProgressIcon({ className, progress, size = 6, position = "left" 
                 className,
                 `w-${size} h-${size} rounded-full flex items-center justify-center overflow-hidden`,
                 {
-                    "bg-gray-800": progress === "not-started" || progress === "started",
+                    "bg-zinc-800": progress === "not-started" || progress === "started",
                     "bg-blue-600": progress === "active",
                     "bg-green-600": progress === "completed",
                     "mr-4": position === "left",

@@ -27,7 +27,7 @@ export function UnitView({ unit, module, onUnitSelected, onUnitCompleted, onModu
         <div className="p-4">
             <h1 className="text-2xl font-bold mb-2 flex items-center">{unit.title}</h1>
 
-            <p className="text-gray-500 text-sm mb-4">{unit.durationInMinutes} minutes</p>
+            <p className="text-zinc-500 text-sm mb-4">{unit.durationInMinutes} minutes</p>
 
             {unit.markdownContent != null && (
                 <div className="prose prose-lg max-w-none">
@@ -100,7 +100,7 @@ function PreviousButton({ onClick }: { onClick: () => void }) {
     return (
         <button
             onClick={onClick}
-            className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors flex items-center"
+            className="bg-zinc-700 text-white px-4 py-2 rounded hover:bg-zinc-600 transition-colors flex items-center"
         >
             <ChevronLeftIcon className="w-5 h-5 mr-2" />
             <span>Previous</span>

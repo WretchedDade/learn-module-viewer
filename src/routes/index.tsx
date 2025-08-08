@@ -54,7 +54,7 @@ function Home() {
     };
 
     return (
-        <div className="bg-gray-900 min-h-screen text-gray-100">
+        <div className="bg-zinc-900 min-h-screen text-zinc-100">
             <ErrorDisplay error={mutation.error} />
 
             {completedModule != null && (
@@ -77,7 +77,7 @@ function Home() {
                 />
             )}
 
-            <div className="flex h-screen bg-gray-900">
+            <div className="flex h-screen bg-zinc-900">
                 <SidePanel
                     activeTab={activeTab}
                     setActiveTab={onTabChange}

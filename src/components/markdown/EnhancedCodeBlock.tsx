@@ -43,21 +43,21 @@ export function EnhancedCodeBlock({
     const highlightedLines = parseHighlightRanges(highlight || '');
     
     return (
-        <div className="my-4 rounded-lg overflow-hidden border border-gray-600">
+        <div className="my-4 rounded-lg overflow-hidden border border-zinc-600">
             {/* Header with file info */}
-            <div className="bg-gray-800 px-4 py-2 border-b border-gray-600">
+            <div className="bg-zinc-800 px-4 py-2 border-b border-zinc-600">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <span className="text-gray-400 text-sm">📄</span>
-                        <span className="text-gray-300 text-sm font-mono">
+                        <span className="text-zinc-400 text-sm">📄</span>
+                        <span className="text-zinc-300 text-sm font-mono">
                             {filename || 'Code'}
                         </span>
-                        <span className="text-gray-500 text-xs px-2 py-1 bg-gray-700 rounded">
+                        <span className="text-zinc-500 text-xs px-2 py-1 bg-zinc-700 rounded">
                             {language}
                         </span>
                     </div>
                     {highlight && (
-                        <span className="text-gray-400 text-xs">
+                        <span className="text-zinc-400 text-xs">
                             Lines: {highlight}
                         </span>
                     )}
@@ -65,10 +65,10 @@ export function EnhancedCodeBlock({
             </div>
             
             {/* Code content */}
-            <div className="bg-gray-900 overflow-x-auto">
+            <div className="bg-zinc-900 overflow-x-auto">
                 <div className="flex">
                     {/* Line numbers */}
-                    <div className="flex-shrink-0 bg-gray-800 px-3 py-3 border-r border-gray-600">
+                    <div className="flex-shrink-0 bg-zinc-800 px-3 py-3 border-r border-zinc-600">
                         {lines.map((_, index) => {
                             const lineNum = index + 1;
                             const isHighlighted = highlightedLines.has(lineNum);
@@ -78,7 +78,7 @@ export function EnhancedCodeBlock({
                                     className={`text-right text-xs leading-6 font-mono ${
                                         isHighlighted 
                                             ? 'text-yellow-400 font-bold' 
-                                            : 'text-gray-500'
+                                            : 'text-zinc-500'
                                     }`}
                                     style={{ minWidth: '3rem' }}
                                 >
@@ -103,8 +103,8 @@ export function EnhancedCodeBlock({
                                             : ''
                                     }`}
                                 >
-                                    {trimmedLine.length === 0 && <span className="text-gray-500">&nbsp;</span>}
-                                    {trimmedLine.length > 0 && <code className="text-gray-300">{trimmedLine}</code>}
+                                    {trimmedLine.length === 0 && <span className="text-zinc-500">&nbsp;</span>}
+                                    {trimmedLine.length > 0 && <code className="text-zinc-300">{trimmedLine}</code>}
                                 </div>
                             );
                         })}
@@ -114,8 +114,8 @@ export function EnhancedCodeBlock({
             
             {/* Footer with source info */}
             {source && (
-                <div className="bg-gray-800 px-4 py-2 border-t border-gray-600">
-                    <span className="text-gray-400 text-xs">Source: {source}</span>
+                <div className="bg-zinc-800 px-4 py-2 border-t border-zinc-600">
+                    <span className="text-zinc-400 text-xs">Source: {source}</span>
                 </div>
             )}
         </div>

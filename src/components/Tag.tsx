@@ -10,7 +10,7 @@ export function Tag({ children, className, rounded = false }: PropsWithChildren<
     return (
         <span
             className={clsx(`capitalize px-3 py-1 text-xs font-medium border`, {
-                "bg-gray-600/20 text-gray-300 border-gray-500/30": className == null || !className.includes("bg-"),
+                "bg-zinc-600/20 text-zinc-300 border-zinc-500/30": className == null || !className.includes("bg-"),
                 [className ?? ""]: className != null && className !== "",
                 "rounded-full": rounded,
                 "rounded-sm": !rounded,

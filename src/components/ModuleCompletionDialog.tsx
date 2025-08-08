@@ -36,7 +36,7 @@ function ModuleCompletionDialog({ open, onClose, module }: ModuleCompletionDialo
                     🎉 Module Completed!
                 </DialogTitle>
 
-                <DialogDescription className="text-center text-gray-600 dark:text-gray-400">
+                <DialogDescription className="text-center text-zinc-600 dark:text-zinc-400">
                     Congratulations! You've successfully completed the module.
                 </DialogDescription>
             </div>
@@ -57,19 +57,19 @@ function ModuleCompletionDialog({ open, onClose, module }: ModuleCompletionDialo
 
                     {/* Achievement Stats */}
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="text-center p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                                 {totalUnits}
                             </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                            <div className="text-sm text-zinc-600 dark:text-zinc-400">
                                 Units Completed
                             </div>
                         </div>
-                        <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="text-center p-4 bg-zinc-50 dark:bg-zinc-800 rounded-lg">
                             <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                                 {totalDuration}
                             </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                            <div className="text-sm text-zinc-600 dark:text-zinc-400">
                                 Minutes Learned
                             </div>
                         </div>
@@ -89,7 +89,7 @@ function ModuleCompletionDialog({ open, onClose, module }: ModuleCompletionDialo
 
                     {/* Motivational Message */}
                     <div className="text-center">
-                        <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        <p className="text-zinc-600 dark:text-zinc-400 text-sm">
                             Keep up the great work! You're making excellent progress on your learning journey.
                         </p>
                     </div>
@@ -102,7 +102,7 @@ function ModuleCompletionDialog({ open, onClose, module }: ModuleCompletionDialo
                     className={clsx(
                         "px-6 py-2 rounded-lg font-medium transition-colors",
                         "bg-blue-600 hover:bg-blue-700 text-white",
-                        "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                        "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900"
                     )}
                 >
                     Continue Learning

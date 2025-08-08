@@ -28,21 +28,21 @@ export function MarkdownContent({ content, title = "View Content", previewLength
     return (
         <details className="mt-2">
             <summary className="cursor-pointer text-blue-400 hover:text-blue-300">{title}</summary>
-            <div className="mt-2 p-3 bg-gray-700 rounded text-sm">
+            <div className="mt-2 p-3 bg-zinc-700 rounded text-sm">
                 <div className="flex justify-between items-center mb-2">
-                    <div className="text-xs text-gray-400">{showRaw ? "Raw Markdown" : "Rendered"}</div>
-                    <button onClick={() => setShowRaw(!showRaw)} className="text-xs bg-gray-600 hover:bg-gray-500 text-gray-200 px-2 py-1 rounded transition-colors">
+                    <div className="text-xs text-zinc-400">{showRaw ? "Raw Markdown" : "Rendered"}</div>
+                    <button onClick={() => setShowRaw(!showRaw)} className="text-xs bg-zinc-600 hover:bg-zinc-500 text-zinc-200 px-2 py-1 rounded transition-colors">
                         {showRaw ? "Show Rendered" : "Show Raw"}
                     </button>
                 </div>
 
                 {showRaw ? (
-                    <pre className="bg-gray-800 overflow-x-auto p-3 rounded text-xs text-gray-300 whitespace-pre-wrap">{displayContent}</pre>
+                    <pre className="bg-zinc-800 overflow-x-auto p-3 rounded text-xs text-zinc-300 whitespace-pre-wrap">{displayContent}</pre>
                 ) : (
                     <Markdown content={displayContent} images={images ?? {}} />
                 )}
 
-                {hasMore && !showFullContent && <div className="mt-2 text-gray-400 text-xs">... (content truncated)</div>}
+                {hasMore && !showFullContent && <div className="mt-2 text-zinc-400 text-xs">... (content truncated)</div>}
             </div>
         </details>
     );

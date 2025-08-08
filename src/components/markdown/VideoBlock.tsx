@@ -119,8 +119,8 @@ export function VideoBlock({ url }: VideoBlockProps) {
                 // Generic fallback - try iframe but provide link as backup
                 return (
                     <div className="space-y-3">
-                        <div className="text-center p-4 bg-gray-800 rounded border border-gray-600">
-                            <div className="text-gray-300 mb-2">📹 Video Content</div>
+                        <div className="text-center p-4 bg-zinc-800 rounded border border-zinc-600">
+                            <div className="text-zinc-300 mb-2">📹 Video Content</div>
                             <a
                                 href={url}
                                 target="_blank"

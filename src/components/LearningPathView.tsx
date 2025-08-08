@@ -20,7 +20,7 @@ export function LearningPathView({ learningPath, onModuleSelected }: LearningPat
         <div className="p-4">
             <h1 className="text-2xl font-bold mb-2">{learningPath.title}</h1>
             {/* <img src={learningPath.iconUrl} alt={`${learningPath.title} icon`} className="w-16 h-16 mb-4" /> */}
-            <p className="text-gray-300 mb-6">{learningPath.summary}</p>
+            <p className="text-zinc-300 mb-6">{learningPath.summary}</p>
 
             {/* Tags Section */}
             {allTags.length > 0 && (
@@ -46,7 +46,7 @@ export function LearningPathView({ learningPath, onModuleSelected }: LearningPat
                     <button
                         key={module.uid}
                         onClick={() => onModuleSelected(module)}
-                        className="bg-gray-800/50 border border-gray-700 rounded-lg p-6 hover:bg-gray-800 transition-colors w-full text-left"
+                        className="bg-zinc-800/50 border border-zinc-700 rounded-lg p-6 hover:bg-zinc-800 transition-colors w-full text-left"
                     >
                         <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center gap-3">
@@ -60,10 +60,10 @@ export function LearningPathView({ learningPath, onModuleSelected }: LearningPat
                             )}
                         </div>
 
-                        {module.summary && <p className="text-gray-300 mb-4">{module.summary}</p>}
+                        {module.summary && <p className="text-zinc-300 mb-4">{module.summary}</p>}
 
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4 text-sm text-gray-400">
+                            <div className="flex items-center gap-4 text-sm text-zinc-400">
                                 {module.units && (
                                     <span className="flex items-center gap-1">
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
