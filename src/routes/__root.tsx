@@ -10,6 +10,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import * as React from "react";
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary";
 import { NotFound } from "~/components/NotFound";
+import { ThemeProvider } from "~/contexts/ThemeContext";
 import appCss from "~/styles/app.css?url";
 
 export const Route = createRootRouteWithContext<{
@@ -63,7 +64,9 @@ export const Route = createRootRouteWithContext<{
 function RootComponent() {
     return (
         <RootDocument>
-            <Outlet />
+            <ThemeProvider defaultTheme="dark" storageKey="learn-module-viewer-theme">
+                <Outlet />
+            </ThemeProvider>
         </RootDocument>
     );
 }
