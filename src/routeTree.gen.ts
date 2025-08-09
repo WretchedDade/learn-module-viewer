@@ -9,38 +9,160 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PlayerRouteImport } from './routes/player'
+import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ModulesUidRouteImport } from './routes/modules.$uid'
+import { Route as LearningPathsUidRouteImport } from './routes/learning-paths.$uid'
+import { Route as ExamsUidRouteImport } from './routes/exams.$uid'
+import { Route as CoursesUidRouteImport } from './routes/courses.$uid'
+import { Route as CertificationsUidRouteImport } from './routes/certifications.$uid'
+import { Route as AppliedSkillsUidRouteImport } from './routes/applied-skills.$uid'
 
+const PlayerRoute = PlayerRouteImport.update({
+  id: '/player',
+  path: '/player',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CatalogRoute = CatalogRouteImport.update({
+  id: '/catalog',
+  path: '/catalog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ModulesUidRoute = ModulesUidRouteImport.update({
+  id: '/modules/$uid',
+  path: '/modules/$uid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearningPathsUidRoute = LearningPathsUidRouteImport.update({
+  id: '/learning-paths/$uid',
+  path: '/learning-paths/$uid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExamsUidRoute = ExamsUidRouteImport.update({
+  id: '/exams/$uid',
+  path: '/exams/$uid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CoursesUidRoute = CoursesUidRouteImport.update({
+  id: '/courses/$uid',
+  path: '/courses/$uid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CertificationsUidRoute = CertificationsUidRouteImport.update({
+  id: '/certifications/$uid',
+  path: '/certifications/$uid',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppliedSkillsUidRoute = AppliedSkillsUidRouteImport.update({
+  id: '/applied-skills/$uid',
+  path: '/applied-skills/$uid',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/catalog': typeof CatalogRoute
+  '/player': typeof PlayerRoute
+  '/applied-skills/$uid': typeof AppliedSkillsUidRoute
+  '/certifications/$uid': typeof CertificationsUidRoute
+  '/courses/$uid': typeof CoursesUidRoute
+  '/exams/$uid': typeof ExamsUidRoute
+  '/learning-paths/$uid': typeof LearningPathsUidRoute
+  '/modules/$uid': typeof ModulesUidRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/catalog': typeof CatalogRoute
+  '/player': typeof PlayerRoute
+  '/applied-skills/$uid': typeof AppliedSkillsUidRoute
+  '/certifications/$uid': typeof CertificationsUidRoute
+  '/courses/$uid': typeof CoursesUidRoute
+  '/exams/$uid': typeof ExamsUidRoute
+  '/learning-paths/$uid': typeof LearningPathsUidRoute
+  '/modules/$uid': typeof ModulesUidRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/catalog': typeof CatalogRoute
+  '/player': typeof PlayerRoute
+  '/applied-skills/$uid': typeof AppliedSkillsUidRoute
+  '/certifications/$uid': typeof CertificationsUidRoute
+  '/courses/$uid': typeof CoursesUidRoute
+  '/exams/$uid': typeof ExamsUidRoute
+  '/learning-paths/$uid': typeof LearningPathsUidRoute
+  '/modules/$uid': typeof ModulesUidRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/catalog'
+    | '/player'
+    | '/applied-skills/$uid'
+    | '/certifications/$uid'
+    | '/courses/$uid'
+    | '/exams/$uid'
+    | '/learning-paths/$uid'
+    | '/modules/$uid'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/catalog'
+    | '/player'
+    | '/applied-skills/$uid'
+    | '/certifications/$uid'
+    | '/courses/$uid'
+    | '/exams/$uid'
+    | '/learning-paths/$uid'
+    | '/modules/$uid'
+  id:
+    | '__root__'
+    | '/'
+    | '/catalog'
+    | '/player'
+    | '/applied-skills/$uid'
+    | '/certifications/$uid'
+    | '/courses/$uid'
+    | '/exams/$uid'
+    | '/learning-paths/$uid'
+    | '/modules/$uid'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CatalogRoute: typeof CatalogRoute
+  PlayerRoute: typeof PlayerRoute
+  AppliedSkillsUidRoute: typeof AppliedSkillsUidRoute
+  CertificationsUidRoute: typeof CertificationsUidRoute
+  CoursesUidRoute: typeof CoursesUidRoute
+  ExamsUidRoute: typeof ExamsUidRoute
+  LearningPathsUidRoute: typeof LearningPathsUidRoute
+  ModulesUidRoute: typeof ModulesUidRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/player': {
+      id: '/player'
+      path: '/player'
+      fullPath: '/player'
+      preLoaderRoute: typeof PlayerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/catalog': {
+      id: '/catalog'
+      path: '/catalog'
+      fullPath: '/catalog'
+      preLoaderRoute: typeof CatalogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +170,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/modules/$uid': {
+      id: '/modules/$uid'
+      path: '/modules/$uid'
+      fullPath: '/modules/$uid'
+      preLoaderRoute: typeof ModulesUidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learning-paths/$uid': {
+      id: '/learning-paths/$uid'
+      path: '/learning-paths/$uid'
+      fullPath: '/learning-paths/$uid'
+      preLoaderRoute: typeof LearningPathsUidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/exams/$uid': {
+      id: '/exams/$uid'
+      path: '/exams/$uid'
+      fullPath: '/exams/$uid'
+      preLoaderRoute: typeof ExamsUidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/courses/$uid': {
+      id: '/courses/$uid'
+      path: '/courses/$uid'
+      fullPath: '/courses/$uid'
+      preLoaderRoute: typeof CoursesUidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/certifications/$uid': {
+      id: '/certifications/$uid'
+      path: '/certifications/$uid'
+      fullPath: '/certifications/$uid'
+      preLoaderRoute: typeof CertificationsUidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/applied-skills/$uid': {
+      id: '/applied-skills/$uid'
+      path: '/applied-skills/$uid'
+      fullPath: '/applied-skills/$uid'
+      preLoaderRoute: typeof AppliedSkillsUidRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CatalogRoute: CatalogRoute,
+  PlayerRoute: PlayerRoute,
+  AppliedSkillsUidRoute: AppliedSkillsUidRoute,
+  CertificationsUidRoute: CertificationsUidRoute,
+  CoursesUidRoute: CoursesUidRoute,
+  ExamsUidRoute: ExamsUidRoute,
+  LearningPathsUidRoute: LearningPathsUidRoute,
+  ModulesUidRoute: ModulesUidRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

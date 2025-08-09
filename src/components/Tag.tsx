@@ -13,7 +13,7 @@ export function Tag({ children, className, rounded = false }: PropsWithChildren<
                 "bg-zinc-600/20 text-zinc-700 dark:text-zinc-300 border-zinc-500/30": className == null || !className.includes("bg-"),
                 [className ?? ""]: className != null && className !== "",
                 "rounded-full": rounded,
-                "rounded-sm": !rounded,
+                "rounded-xs": !rounded,
             })}
         >
             {children}

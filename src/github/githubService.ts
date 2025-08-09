@@ -4,6 +4,7 @@ import { Content, isModule, isUnit, LearningPath, Module, Unit } from "./githubT
 import { pathUtilities } from "./pathUtilities";
 import { utils } from "./utils";
 import { yamlProcessor } from "./yamlProcessor";
+import { M } from "node_modules/framer-motion/dist/types.d-Cjd591yU";
 
 export interface ContentDownloadRequest {
     folderPath: string;
@@ -14,10 +15,10 @@ export interface PerformanceResults {
     durationFormatted: string; // human readable
 }
 
-export type ContentDownloadResult =
+export type ContentDownloadResult<TContent = Content> =
     | {
           status: "success";
-          content: Content;
+          content: TContent;
           performance: PerformanceResults;
       }
     | {
@@ -38,10 +39,16 @@ export const DownloadContentFromGitHub = createServerFn()
         const pathType = pathUtilities.detectPathType(data.folderPath);
 
         if (pathType === "learning-path-folder" || pathType === "learning-path-url") {
-            const learningPathFolder = pathType === "learning-path-folder" ? data.folderPath : await pathUtilities.extractFolderPathFromLearnLearningPathUrl(data.folderPath);
+            const learningPathFolder =
+                pathType === "learning-path-folder"
+                    ? data.folderPath
+                    : await pathUtilities.extractFolderPathFromLearnLearningPathUrl(data.folderPath);
             content = await downloadLearnLearningPath(learningPathFolder);
         } else if (pathType === "module-folder" || pathType === "module-url") {
-            const moduleFolder = pathType === "module-folder" ? data.folderPath : await pathUtilities.extractFolderPathFromLearnModuleUrl(data.folderPath);
+            const moduleFolder =
+                pathType === "module-folder"
+                    ? data.folderPath
+                    : await pathUtilities.extractFolderPathFromLearnModuleUrl(data.folderPath);
             content = await downloadLearnModule(moduleFolder);
         }
 
@@ -59,6 +66,66 @@ export const DownloadContentFromGitHub = createServerFn()
                 performance: performanceResults,
             };
         }
+
+        return {
+            status: "success",
+            content,
+            performance: performanceResults,
+        };
+    });
+
+export const DownloadLearningPathFromGitHub = createServerFn()
+    .validator((data: ContentDownloadRequest) => data)
+    .handler(async ({ data }): Promise<ContentDownloadResult<LearningPath>> => {
+        const start = performance.now();
+
+        fileDownloader.clearCache();
+
+        const pathType = pathUtilities.detectPathType(data.folderPath);
+
+        const learningPathFolder =
+            pathType === "learning-path-folder"
+                ? data.folderPath
+                : await pathUtilities.extractFolderPathFromLearnLearningPathUrl(data.folderPath);
+
+        const content = await downloadLearnLearningPath(learningPathFolder);
+
+        const duration = performance.now() - start;
+
+        const performanceResults: PerformanceResults = {
+            duration,
+            durationFormatted: utils.formatDuration(duration),
+        };
+
+        return {
+            status: "success",
+            content,
+            performance: performanceResults,
+        };
+    });
+
+export const DownloadModuleFromGitHub = createServerFn()
+    .validator((data: ContentDownloadRequest) => data)
+    .handler(async ({ data }): Promise<ContentDownloadResult<Module>> => {
+        const start = performance.now();
+
+        fileDownloader.clearCache();
+
+        const pathType = pathUtilities.detectPathType(data.folderPath);
+
+        const moduleFolder =
+            pathType === "module-folder"
+                ? data.folderPath
+                : await pathUtilities.extractFolderPathFromLearnModuleUrl(data.folderPath);
+
+        const content = await downloadLearnModule(moduleFolder);
+
+        const duration = performance.now() - start;
+
+        const performanceResults: PerformanceResults = {
+            duration,
+            durationFormatted: utils.formatDuration(duration),
+        };
 
         return {
             status: "success",
@@ -108,7 +175,9 @@ async function downloadLearnModule(moduleFolder: string): Promise<Module> {
     const files = items.filter((item) => item.type === "file");
 
     const yamlFiles = files.filter((file) => file.name.endsWith(".yml") || file.name.endsWith(".yaml"));
-    const processedYaml = await Promise.all(yamlFiles.map((yamlFile) => yamlProcessor.processLearnYaml(yamlFile.download_url, yamlFile.path)));
+    const processedYaml = await Promise.all(
+        yamlFiles.map((yamlFile) => yamlProcessor.processLearnYaml(yamlFile.download_url, yamlFile.path)),
+    );
 
     const module = processedYaml.find((yaml) => yaml != null && isModule(yaml));
 

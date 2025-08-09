@@ -60,7 +60,7 @@ export function ContentForm({ folderPath, setFolderPath, onLoadModule, isLoading
                     type="text"
                     value={folderPath || ""}
                     onChange={(e) => setFolderPath(e.target.value)}
-                    className="w-full px-3 py-2 border border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 rounded-md focus:outline-hidden focus:ring-2 focus:ring-blue-400 focus:border-transparent"
                     placeholder="https://learn.microsoft.com/en-us/training/modules/explore-ai-basics/"
                 />
 

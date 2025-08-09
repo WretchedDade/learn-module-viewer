@@ -65,7 +65,7 @@ export function VideoBlock({ url }: VideoBlockProps) {
                 return (
                     <div className="relative w-full" style={{ paddingBottom: '56.25%' /* 16:9 aspect ratio */ }}>
                         <iframe
-                            className="absolute top-0 left-0 w-full h-full rounded"
+                            className="absolute top-0 left-0 w-full h-full rounded-sm"
                             src={videoInfo.embedUrl}
                             title="Video player"
                             frameBorder="0"
@@ -78,7 +78,7 @@ export function VideoBlock({ url }: VideoBlockProps) {
             case 'direct':
                 return (
                     <video
-                        className="w-full rounded"
+                        className="w-full rounded-sm"
                         controls
                         preload="metadata"
                     >
@@ -94,7 +94,7 @@ export function VideoBlock({ url }: VideoBlockProps) {
                     <div className="space-y-3">
                         <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                             <iframe
-                                className="absolute top-0 left-0 w-full h-full rounded"
+                                className="absolute top-0 left-0 w-full h-full rounded-sm"
                                 src={videoInfo.embedUrl}
                                 title="Microsoft Learn Video"
                                 frameBorder="0"
@@ -119,7 +119,7 @@ export function VideoBlock({ url }: VideoBlockProps) {
                 // Generic fallback - try iframe but provide link as backup
                 return (
                     <div className="space-y-3">
-                        <div className="text-center p-4 bg-zinc-800 rounded border border-zinc-600">
+                        <div className="text-center p-4 bg-zinc-800 rounded-sm border border-zinc-600">
                             <div className="text-zinc-300 mb-2">📹 Video Content</div>
                             <a
                                 href={url}

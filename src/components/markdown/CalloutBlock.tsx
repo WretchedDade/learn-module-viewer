@@ -68,7 +68,7 @@ export function CalloutBlock({ children }: CalloutBlockProps) {
         return (
             <div className={`${style.border} ${style.bg} border-l-4 rounded-r p-4 my-4`}>
                 <div className="flex items-start gap-2">
-                    <span className={`${style.iconColor} text-lg flex-shrink-0`}>{style.icon}</span>
+                    <span className={`${style.iconColor} text-lg shrink-0`}>{style.icon}</span>
                     <div className="flex-1">
                         <div className={`${style.iconColor} font-semibold text-sm uppercase tracking-wide mb-1`}>
                             {calloutType}

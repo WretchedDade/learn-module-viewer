@@ -16,7 +16,7 @@ function ModuleCompletionDialog({ open, onClose, module }: ModuleCompletionDialo
         <Dialog open={open} onClose={onClose} size="3xl" className="p-8">
             <div className="text-center">
                 {/* Celebration Icon */}
-                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r from-green-400 to-emerald-500">
+                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-linear-to-r from-green-400 to-emerald-500">
                     <svg 
                         className="h-10 w-10 text-white" 
                         fill="none" 
@@ -44,7 +44,7 @@ function ModuleCompletionDialog({ open, onClose, module }: ModuleCompletionDialo
             <DialogBody>
                 <div className="space-y-6">
                     {/* Module Info */}
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                    <div className="bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
                         <h3 className="font-semibold text-green-800 dark:text-green-200 mb-2">
                             {module.title}
                         </h3>
@@ -102,7 +102,7 @@ function ModuleCompletionDialog({ open, onClose, module }: ModuleCompletionDialo
                     className={clsx(
                         "px-6 py-2 rounded-lg font-medium transition-colors",
                         "bg-blue-600 hover:bg-blue-700 text-white",
-                        "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900"
+                        "focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900"
                     )}
                 >
                     Continue Learning

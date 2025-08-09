@@ -13,8 +13,6 @@ export function ModuleView({ module, onUnitSelected }: ModuleViewProps) {
 
     const totalDuration = module.units?.reduce((total, unit) => total + (unit.durationInMinutes || 0), 0) || 0;
 
-    console.log(module);
-
     return (
         <div className="p-4">
             <div className="flex gap-4 mb-4">
@@ -80,7 +78,7 @@ export function ModuleView({ module, onUnitSelected }: ModuleViewProps) {
                                     <ProgressTag className="ml-4" progress={unit.progress} />
                                 </div>
                                 {unit.durationInMinutes && (
-                                    <span className="text-zinc-600 dark:text-zinc-300 text-xs rounded-md font-medium flex-shrink-0">
+                                    <span className="text-zinc-600 dark:text-zinc-300 text-xs rounded-md font-medium shrink-0">
                                         {unit.durationInMinutes} min
                                     </span>
                                 )}

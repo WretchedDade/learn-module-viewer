@@ -71,7 +71,7 @@ export function Markdown({ content, images }: MarkdownProps) {
             } else {
                 // Inline code
                 return (
-                    <code className="bg-zinc-200 dark:bg-zinc-800 p-1 rounded text-sm font-mono" {...props}>
+                    <code className="bg-zinc-200 dark:bg-zinc-800 p-1 rounded-sm text-sm font-mono" {...props}>
                         {children}
                     </code>
                 );
@@ -102,10 +102,10 @@ export function Markdown({ content, images }: MarkdownProps) {
             // Normal pre block with optional language label in top right
             return (
                 <div className="relative mb-3">
-                    <pre className="bg-zinc-200 dark:bg-zinc-800 overflow-x-auto p-3 rounded" {...props}>
+                    <pre className="bg-zinc-200 dark:bg-zinc-800 overflow-x-auto p-3 rounded-sm" {...props}>
                         {children}
                     </pre>
-                    {language && <div className="absolute top-2 right-2 bg-zinc-300 dark:bg-zinc-700 px-2 py-1 rounded text-xs font-mono text-zinc-700 dark:text-zinc-400">{language}</div>}
+                    {language && <div className="absolute top-2 right-2 bg-zinc-300 dark:bg-zinc-700 px-2 py-1 rounded-sm text-xs font-mono text-zinc-700 dark:text-zinc-400">{language}</div>}
                 </div>
             );
         },
@@ -154,7 +154,7 @@ export function Markdown({ content, images }: MarkdownProps) {
                     // Fallback for missing image data
                     console.warn(`Image data not found for reference: ${imageRef}`);
                     return (
-                        <div className="my-4 p-4 border border-red-500 rounded bg-red-900/20 text-center">
+                        <div className="my-4 p-4 border border-red-500 rounded-sm bg-red-900/20 text-center">
                             <div className="text-red-400 text-sm">⚠️ Image not available: {source || imageRef}</div>
                             {alt && <div className="text-zinc-400 text-xs mt-1">{alt}</div>}
                         </div>
@@ -163,7 +163,7 @@ export function Markdown({ content, images }: MarkdownProps) {
             }
 
             // Regular image
-            return <img src={src} alt={alt} className="max-w-full h-auto rounded my-3" loading="lazy" {...props} />;
+            return <img src={src} alt={alt} className="max-w-full h-auto rounded-sm my-3" loading="lazy" {...props} />;
         },
     };
 

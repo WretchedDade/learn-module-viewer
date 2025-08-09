@@ -13,7 +13,7 @@ export function ThemeToggle() {
                 id="theme-select"
                 value={theme}
                 onChange={(e) => setTheme(e.target.value as any)}
-                className="px-3 py-2 text-sm rounded-md border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                className="px-3 py-2 text-sm rounded-md border border-input bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>

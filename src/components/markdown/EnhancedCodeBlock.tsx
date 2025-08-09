@@ -52,7 +52,7 @@ export function EnhancedCodeBlock({
                         <span className="text-zinc-700 dark:text-zinc-300 text-sm font-mono">
                             {filename || 'Code'}
                         </span>
-                        <span className="text-zinc-500 text-xs px-2 py-1 bg-zinc-300 dark:bg-zinc-700 rounded">
+                        <span className="text-zinc-500 text-xs px-2 py-1 bg-zinc-300 dark:bg-zinc-700 rounded-sm">
                             {language}
                         </span>
                     </div>
@@ -68,7 +68,7 @@ export function EnhancedCodeBlock({
             <div className="bg-zinc-50 dark:bg-zinc-900 overflow-x-auto">
                 <div className="flex">
                     {/* Line numbers */}
-                    <div className="flex-shrink-0 bg-zinc-100 dark:bg-zinc-800 px-3 py-3 border-r border-zinc-600">
+                    <div className="shrink-0 bg-zinc-100 dark:bg-zinc-800 px-3 py-3 border-r border-zinc-600">
                         {lines.map((_, index) => {
                             const lineNum = index + 1;
                             const isHighlighted = highlightedLines.has(lineNum);

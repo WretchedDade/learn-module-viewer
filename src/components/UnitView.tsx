@@ -38,7 +38,7 @@ export function UnitView({ unit, module, onUnitSelected, onUnitCompleted, onModu
             {unit.markdownContent == null && (
                 <div className="bg-yellow-200 border border-yellow-200 rounded-lg p-4">
                     <div className="flex items-center">
-                        <div className="flex-shrink-0">
+                        <div className="shrink-0">
                             <svg className="h-5 w-5 text-yellow-700" viewBox="0 0 20 20" fill="currentColor">
                                 <path
                                     fillRule="evenodd"
@@ -100,7 +100,7 @@ function PreviousButton({ onClick }: { onClick: () => void }) {
     return (
         <button
             onClick={onClick}
-            className="bg-zinc-300 dark:bg-zinc-700 dark:text-white px-4 py-2 rounded hover:bg-zinc-400 dark:hover:bg-zinc-600 transition-colors flex items-center"
+            className="bg-zinc-300 dark:bg-zinc-700 dark:text-white px-4 py-2 rounded-sm hover:bg-zinc-400 dark:hover:bg-zinc-600 transition-colors flex items-center"
         >
             <ChevronLeftIcon className="w-5 h-5 mr-2" />
             <span>Previous</span>
@@ -120,7 +120,7 @@ function NextButton({
     return (
         <button
             onClick={onClick}
-            className="bg-blue-300 dark:bg-blue-600 dark:text-white px-4 py-2 rounded dark:hover:bg-blue-700 hover:bg-blue-400 transition-colors flex items-center"
+            className="bg-blue-300 dark:bg-blue-600 dark:text-white px-4 py-2 rounded-sm dark:hover:bg-blue-700 hover:bg-blue-400 transition-colors flex items-center"
         >
             <span>{children}</span>
             {!hideIcon && <ChevronRightIcon className="w-5 h-5 ml-2" />}

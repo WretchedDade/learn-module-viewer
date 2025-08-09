@@ -7,7 +7,7 @@ import { ProgressIcon } from "./ProgressIcon";
 import { LearningPathSkeleton, SidePanelHeaderSkeleton } from "./SkeletonLoading";
 import { ThemeToggleButton } from "./ThemeToggle";
 
-type LearningPathTab = { type: "learningPath"; learningPath: LearningPath };
+export type LearningPathTab = { type: "learningPath"; learningPath: LearningPath };
 
 type UnitTab = { type: "unit"; unit: Unit; module: Module; learningPath?: LearningPath };
 type ModuleTab = { type: "module"; module: Module; learningPath?: LearningPath };
@@ -18,7 +18,7 @@ interface SidePanelProps {
     activeTab: TabType;
     setActiveTab: (tab: TabType) => void;
 
-    onExperienceReset: () => void;
+    onExperienceReset?: () => void;
 
     isLoading: boolean;
     result: ContentDownloadResult | null | undefined;
@@ -98,18 +98,19 @@ export function SidePanel({ activeTab, setActiveTab, onExperienceReset, isLoadin
                             )}
                         </div>
 
-                        <div className="flex justify-between items-center gap-4">
-                            <button
-                                onClick={onExperienceReset}
-                                className="w-full text-left px-3 py-2 rounded-md hover:text-white active:text-white hover:bg-blue-500 active:bg-blue-600 dark:active:bg-blue-400 transition-colors"
-                            >
-                                <div className="flex items-center">
-                                    <ArrowPathIcon className="w-4 h-4 mr-2" />
-                                    Reset Experience
-                                </div>
-                            </button>
-                            <ThemeToggleButton />
-                        </div>
+                        {onExperienceReset && (
+                            <div className="flex justify-between items-center gap-4">
+                                <button
+                                    onClick={onExperienceReset}
+                                    className="w-full text-left px-3 py-2 rounded-md hover:text-white active:text-white hover:bg-blue-500 active:bg-blue-600 dark:active:bg-blue-400 transition-colors"
+                                >
+                                    <div className="flex items-center">
+                                        <ArrowPathIcon className="w-4 h-4 mr-2" />
+                                        Reset Experience
+                                    </div>
+                                </button>
+                            </div>
+                        )}
                     </>
                 )}
 
@@ -242,4 +243,94 @@ function ModuleOptions({ module, learningPath, activeTab, onTabSelected }: Modul
             )}
         </div>
     );
+}
+
+/**
+ * Completes the content's progress state.
+ * @param previousTab The previous active tab.
+ * @param result The result of the content download.
+ */
+export function completeContent(previousTab: TabType, result: ContentDownloadResult | null) {
+    if (result?.status !== "success") return;
+
+    if (previousTab.type === "learningPath") {
+        if (isLearningPath(result.content)) {
+            result.content.progress = "completed";
+        }
+    }
+
+    if (previousTab.type === "module") {
+        if (isModule(result.content)) {
+            result.content.progress = "completed";
+        } else if (isLearningPath(result.content)) {
+            for (const module of result.content.modules) {
+                if (module.uid === previousTab.module.uid) {
+                    module.progress = "completed";
+                }
+            }
+        }
+    }
+
+    if (previousTab.type === "unit") {
+        if (isModule(result.content)) {
+            for (const unit of previousTab.module.units) {
+                if (unit.uid === previousTab.unit.uid) {
+                    unit.progress = "completed";
+                }
+            }
+        } else if (isLearningPath(result.content)) {
+            for (const module of result.content.modules) {
+                for (const unit of module.units) {
+                    if (unit.uid === previousTab.unit.uid) {
+                        unit.progress = "completed";
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Starts the content's progress state if it has not been started yet.
+ * @param newTab The new tab to switch to.
+ * @param result The result of the content download.
+ */
+export function startIfNotStarted(newTab: TabType, result: ContentDownloadResult | null) {
+    if (result?.status !== "success") return;
+
+    if (newTab.type === "learningPath") {
+        if (isLearningPath(result.content) && result.content.progress === "not-started") {
+            result.content.progress = "started";
+        }
+    }
+
+    if (newTab.type === "module") {
+        if (isModule(result.content) && result.content.progress === "not-started") {
+            result.content.progress = "started";
+        } else if (isLearningPath(result.content)) {
+            for (const module of result.content.modules) {
+                if (module.uid === newTab.module.uid && module.progress === "not-started") {
+                    module.progress = "started";
+                }
+            }
+        }
+    }
+
+    if (newTab.type === "unit") {
+        if (isModule(result.content)) {
+            for (const unit of newTab.module.units) {
+                if (unit.uid === newTab.unit.uid && unit.progress === "not-started") {
+                    unit.progress = "started";
+                }
+            }
+        } else if (isLearningPath(result.content)) {
+            for (const module of result.content.modules) {
+                for (const unit of module.units) {
+                    if (unit.uid === newTab.unit.uid && unit.progress === "not-started") {
+                        unit.progress = "started";
+                    }
+                }
+            }
+        }
+    }
 }
