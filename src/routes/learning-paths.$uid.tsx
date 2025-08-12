@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useLearningPathByUid } from "../queries/useCatalogQueries";
+import { getLearningPathByUidOptions, useLearningPathByUid } from "../queries/useCatalogQueries";
 import { Module, Unit, Progress } from "~/github/githubTypes";
 import { act, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useScrollReset } from "~/hooks/useScrollReset";
@@ -13,16 +13,12 @@ import { TabType } from "~/components/side-panel/SidePanel.types";
 import { LearningPathSidePanel } from "~/components/side-panel/LearningPathSidePanel";
 import { useProgressManagement } from "~/hooks/useProgressManagement";
 
-// Progress state decoupled from content objects
-interface ModuleProgressState {
-    progress: Progress; // module progress
-    totalUnits: number;
-    units: Record<string, Progress>; // unitId -> progress
-}
-type ModuleProgressMap = Record<string, ModuleProgressState>;
-
 export const Route = createFileRoute("/learning-paths/$uid")({
     component: LearningPathDetail,
+    loader: async ({ params, context: { queryClient } }) => {
+        const { uid } = params;
+        queryClient.prefetchQuery(getLearningPathByUidOptions(uid));
+    },
 });
 
 function LearningPathDetail() {

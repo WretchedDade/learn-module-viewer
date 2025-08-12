@@ -17,7 +17,17 @@ type BaseProps = {
     durationLabel?: string;
 };
 
-function CardFrame({ children, className, to, ariaLabel }: { children: React.ReactNode; className?: string; to?: string; ariaLabel?: string }) {
+function CardFrame({
+    children,
+    className,
+    to,
+    ariaLabel,
+}: {
+    children: React.ReactNode;
+    className?: string;
+    to?: string;
+    ariaLabel?: string;
+}) {
     return (
         <div
             className={
@@ -43,6 +53,7 @@ function CardFrame({ children, className, to, ariaLabel }: { children: React.Rea
             </div>
             {to ? (
                 <Link
+                    preload="viewport"
                     to={to}
                     className="absolute inset-0 z-10 focus:outline-none"
                     aria-label={ariaLabel}
@@ -186,7 +197,7 @@ export function IconItemCard({
 // ItemCard: simple text-only card
 export function ItemCard({ title, uid, url, to, summary, tags, footer, className, durationLabel }: BaseProps) {
     return (
-    <CardFrame className={className} to={to} ariaLabel={title}>
+        <CardFrame className={className} to={to} ariaLabel={title}>
             <CardBody
                 title={title}
                 summary={summary}

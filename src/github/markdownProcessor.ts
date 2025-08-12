@@ -202,9 +202,6 @@ function createEnhancedImage(imageRef: string, altText: string, type?: string, s
     // Put comments inline after the image
     const result = `![${altText}](${imageRef}) ${metadataComments.join(" ")}`;
 
-    console.log("Generated enhanced image block:");
-    console.log(JSON.stringify(result, null, 2));
-
     return result;
 }
 
