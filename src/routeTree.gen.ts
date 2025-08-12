@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as PlayerRouteImport } from './routes/player'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ModulesUidRouteImport } from './routes/modules.$uid'
@@ -19,11 +18,6 @@ import { Route as CoursesUidRouteImport } from './routes/courses.$uid'
 import { Route as CertificationsUidRouteImport } from './routes/certifications.$uid'
 import { Route as AppliedSkillsUidRouteImport } from './routes/applied-skills.$uid'
 
-const PlayerRoute = PlayerRouteImport.update({
-  id: '/player',
-  path: '/player',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CatalogRoute = CatalogRouteImport.update({
   id: '/catalog',
   path: '/catalog',
@@ -68,7 +62,6 @@ const AppliedSkillsUidRoute = AppliedSkillsUidRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/catalog': typeof CatalogRoute
-  '/player': typeof PlayerRoute
   '/applied-skills/$uid': typeof AppliedSkillsUidRoute
   '/certifications/$uid': typeof CertificationsUidRoute
   '/courses/$uid': typeof CoursesUidRoute
@@ -79,7 +72,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/catalog': typeof CatalogRoute
-  '/player': typeof PlayerRoute
   '/applied-skills/$uid': typeof AppliedSkillsUidRoute
   '/certifications/$uid': typeof CertificationsUidRoute
   '/courses/$uid': typeof CoursesUidRoute
@@ -91,7 +83,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/catalog': typeof CatalogRoute
-  '/player': typeof PlayerRoute
   '/applied-skills/$uid': typeof AppliedSkillsUidRoute
   '/certifications/$uid': typeof CertificationsUidRoute
   '/courses/$uid': typeof CoursesUidRoute
@@ -104,7 +95,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/catalog'
-    | '/player'
     | '/applied-skills/$uid'
     | '/certifications/$uid'
     | '/courses/$uid'
@@ -115,7 +105,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/catalog'
-    | '/player'
     | '/applied-skills/$uid'
     | '/certifications/$uid'
     | '/courses/$uid'
@@ -126,7 +115,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/catalog'
-    | '/player'
     | '/applied-skills/$uid'
     | '/certifications/$uid'
     | '/courses/$uid'
@@ -138,7 +126,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CatalogRoute: typeof CatalogRoute
-  PlayerRoute: typeof PlayerRoute
   AppliedSkillsUidRoute: typeof AppliedSkillsUidRoute
   CertificationsUidRoute: typeof CertificationsUidRoute
   CoursesUidRoute: typeof CoursesUidRoute
@@ -149,13 +136,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/player': {
-      id: '/player'
-      path: '/player'
-      fullPath: '/player'
-      preLoaderRoute: typeof PlayerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/catalog': {
       id: '/catalog'
       path: '/catalog'
@@ -218,7 +198,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CatalogRoute: CatalogRoute,
-  PlayerRoute: PlayerRoute,
   AppliedSkillsUidRoute: AppliedSkillsUidRoute,
   CertificationsUidRoute: CertificationsUidRoute,
   CoursesUidRoute: CoursesUidRoute,

@@ -115,6 +115,41 @@ ${indentation}\`\`\``;
         }
     }
 
+    // Process standard markdown image syntax for relative images not yet enhanced
+    // Pattern: ![alt text](path "optional title")
+    const standardImageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+    const standardImageMatches = Array.from(processedContent.matchAll(standardImageRegex));
+
+    for (let i = standardImageMatches.length - 1; i >= 0; i--) {
+        const match = standardImageMatches[i];
+        const [fullMatch, altTextRaw, pathPartRaw] = match;
+
+        // Skip if already an enhanced image (we add <!-- @enhanced: true --> comment after it)
+        // Quick check: if the image path already starts with IMG_REF_ we assume processed
+        const pathPart = pathPartRaw.trim();
+        const urlOnly = pathPart.split(/\s+/)[0]; // strip optional title
+        if (urlOnly.startsWith('IMG_REF_')) continue;
+        // Absolute / external or data URIs shouldn't be processed
+        if (/^(https?:)?\/\//i.test(urlOnly) || urlOnly.startsWith('data:')) continue;
+
+        try {
+            const resolvedPath = pathUtilities.resolveRelativePath(urlOnly, markdownPath);
+            if (resolvedPath) {
+                const imageRef = `IMG_REF_${resolvedPath.replace(/[^a-zA-Z0-9]/g, "_")}`;
+                const altText = altTextRaw || '';
+                const imageBlock = createEnhancedImage(imageRef, altText, undefined, urlOnly);
+                const matchStart = match.index!;
+                const matchEnd = matchStart + fullMatch.length;
+                processedContent = processedContent.substring(0, matchStart) + imageBlock + processedContent.substring(matchEnd);
+            } else {
+                // Could not resolve; leave original in place but optionally could annotate
+                console.warn(`Could not resolve standard image path: ${urlOnly} from ${markdownPath}`);
+            }
+        } catch (error) {
+            console.error(`Failed to process standard image ${urlOnly}:`, error);
+        }
+    }
+
     return processedContent;
 }
 

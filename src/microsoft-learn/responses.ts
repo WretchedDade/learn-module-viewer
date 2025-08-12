@@ -233,3 +233,6 @@ export type CatalogContentRecord =
 	| ExamRecord
 	| CourseRecord;
 
+export function isLearningPath(item: LearningPathRecord | ModuleRecord): item is LearningPathRecord {
+	return item.type === "learningPath";
+}

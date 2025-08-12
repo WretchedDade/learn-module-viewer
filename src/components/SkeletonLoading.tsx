@@ -1,45 +1,39 @@
 import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 interface SkeletonProps {
     className?: string;
 }
 
 export function Skeleton({ className }: SkeletonProps) {
-    return (
-        <div
-            className={clsx(
-                "animate-pulse bg-zinc-200 dark:bg-zinc-600 rounded-sm",
-                className
-            )}
-        />
-    );
+    return <div className={twMerge(clsx("animate-pulse bg-zinc-200 dark:bg-zinc-600 rounded-sm", className))} />;
 }
 
-export function ModuleSkeleton() {
+export function ModuleSkeleton({ showUnits }: { showUnits: boolean }) {
     return (
         <div className="">
             {/* Module header skeleton */}
-            <div className="w-full px-4 py-2 bg-zinc-300 dark:bg-zinc-700 rounded-t-md">
+            <div className="w-full px-4 py-2 bg-zinc-300 dark:bg-zinc-700 rounded-md">
                 <div className="flex">
                     {/* Progress icon skeleton */}
-                    <div className="mt-1 mr-3">
-                        <Skeleton className="w-6 h-6 rounded-full" />
-                    </div>
-                    <div className="min-w-0 flex-1 space-y-2">
+                    <Skeleton className="mt-1 mr-4 w-6 h-6 rounded-full" />
+                    <div className="min-w-0 flex-1">
                         {/* Module title skeleton */}
-                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-5 w-3/4" />
                         {/* Module summary skeleton */}
-                        <Skeleton className="h-3 w-full" />
+                        <Skeleton className="h-8 w-full mt-2" />
                     </div>
                 </div>
             </div>
-            
+
             {/* Units skeleton */}
-            <div className="p-2 space-y-2 bg-zinc-100 dark:bg-zinc-900 rounded-b-md">
-                {Array.from({ length: 3 }).map((_, index) => (
-                    <UnitSkeleton key={index} />
-                ))}
-            </div>
+            {showUnits && (
+                <div className="p-2 space-y-2 bg-zinc-100 dark:bg-zinc-900 rounded-b-md">
+                    {Array.from({ length: 3 }).map((_, index) => (
+                        <UnitSkeleton key={`ModuleSkeleton-Unit-${index}`} />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
@@ -63,17 +57,17 @@ export function UnitSkeleton() {
     );
 }
 
-export function LearningPathSkeleton() {
+export function LearningPathSidePanelSkeleton() {
     return (
         <div className="space-y-4">
             {/* Learning path overview skeleton */}
             <div className="w-full p-2 bg-zinc-300 dark:bg-zinc-700 rounded-md">
                 <Skeleton className="h-4 w-20" />
             </div>
-            
+
             {/* Multiple modules skeleton */}
             {Array.from({ length: 2 }).map((_, index) => (
-                <ModuleSkeleton key={index} />
+                <ModuleSkeleton key={`LearningPathSidePanelSkeleton-Module-${index}`} showUnits={false} />
             ))}
         </div>
     );

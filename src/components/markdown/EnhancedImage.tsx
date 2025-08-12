@@ -16,11 +16,11 @@ export function EnhancedImage({
         
         switch (type) {
             case "content":
-                return `${baseClasses} border border-zinc-600 shadow-lg`;
+                return `${baseClasses} bg-zinc-200 dark:bg-zinc-800 p-8 shadow-lg`;
             case "diagram":
-                return `${baseClasses} border-2 border-blue-500 bg-white p-2`;
+                return `${baseClasses} bg-white p-2`;
             case "screenshot":
-                return `${baseClasses} border border-zinc-500 shadow-xl`;
+                return `${baseClasses} shadow-xl`;
             case "icon":
                 return "w-8 h-8 inline-block";
             default:

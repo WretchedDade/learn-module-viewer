@@ -10,75 +10,9 @@ export interface ContentDownloadRequest {
     folderPath: string;
 }
 
-export interface PerformanceResults {
-    duration: number; // milliseconds
-    durationFormatted: string; // human readable
-}
-
-export type ContentDownloadResult<TContent = Content> =
-    | {
-          status: "success";
-          content: TContent;
-          performance: PerformanceResults;
-      }
-    | {
-          status: "error";
-          message: string;
-          performance: PerformanceResults;
-      };
-
-// New content-agnostic download function that routes to appropriate handler
-export const DownloadContentFromGitHub = createServerFn()
-    .validator((data: ContentDownloadRequest) => data)
-    .handler(async ({ data }): Promise<ContentDownloadResult> => {
-        const start = performance.now();
-
-        fileDownloader.clearCache();
-
-        let content: Content | null = null;
-        const pathType = pathUtilities.detectPathType(data.folderPath);
-
-        if (pathType === "learning-path-folder" || pathType === "learning-path-url") {
-            const learningPathFolder =
-                pathType === "learning-path-folder"
-                    ? data.folderPath
-                    : await pathUtilities.extractFolderPathFromLearnLearningPathUrl(data.folderPath);
-            content = await downloadLearnLearningPath(learningPathFolder);
-        } else if (pathType === "module-folder" || pathType === "module-url") {
-            const moduleFolder =
-                pathType === "module-folder"
-                    ? data.folderPath
-                    : await pathUtilities.extractFolderPathFromLearnModuleUrl(data.folderPath);
-            content = await downloadLearnModule(moduleFolder);
-        }
-
-        const duration = performance.now() - start;
-
-        const performanceResults: PerformanceResults = {
-            duration,
-            durationFormatted: utils.formatDuration(duration),
-        };
-
-        if (content == null) {
-            return {
-                status: "error",
-                message: "No content found or could not be processed.",
-                performance: performanceResults,
-            };
-        }
-
-        return {
-            status: "success",
-            content,
-            performance: performanceResults,
-        };
-    });
-
 export const DownloadLearningPathFromGitHub = createServerFn()
     .validator((data: ContentDownloadRequest) => data)
-    .handler(async ({ data }): Promise<ContentDownloadResult<LearningPath>> => {
-        const start = performance.now();
-
+    .handler(async ({ data }): Promise<LearningPath> => {
         fileDownloader.clearCache();
 
         const pathType = pathUtilities.detectPathType(data.folderPath);
@@ -88,27 +22,12 @@ export const DownloadLearningPathFromGitHub = createServerFn()
                 ? data.folderPath
                 : await pathUtilities.extractFolderPathFromLearnLearningPathUrl(data.folderPath);
 
-        const content = await downloadLearnLearningPath(learningPathFolder);
-
-        const duration = performance.now() - start;
-
-        const performanceResults: PerformanceResults = {
-            duration,
-            durationFormatted: utils.formatDuration(duration),
-        };
-
-        return {
-            status: "success",
-            content,
-            performance: performanceResults,
-        };
+        return await downloadLearnLearningPath(learningPathFolder, true);
     });
 
 export const DownloadModuleFromGitHub = createServerFn()
     .validator((data: ContentDownloadRequest) => data)
-    .handler(async ({ data }): Promise<ContentDownloadResult<Module>> => {
-        const start = performance.now();
-
+    .handler(async ({ data }): Promise<Module> => {
         fileDownloader.clearCache();
 
         const pathType = pathUtilities.detectPathType(data.folderPath);
@@ -118,23 +37,13 @@ export const DownloadModuleFromGitHub = createServerFn()
                 ? data.folderPath
                 : await pathUtilities.extractFolderPathFromLearnModuleUrl(data.folderPath);
 
-        const content = await downloadLearnModule(moduleFolder);
-
-        const duration = performance.now() - start;
-
-        const performanceResults: PerformanceResults = {
-            duration,
-            durationFormatted: utils.formatDuration(duration),
-        };
-
-        return {
-            status: "success",
-            content,
-            performance: performanceResults,
-        };
+        return await downloadLearnModule(moduleFolder);
     });
 
-async function downloadLearnLearningPath(learningPathFolder: string): Promise<LearningPath> {
+async function downloadLearnLearningPath(
+    learningPathFolder: string,
+    skipModuleProcessing: boolean = false,
+): Promise<LearningPath> {
     const items = await fileDownloader.downloadFolderContents(learningPathFolder);
 
     // There should only be the one index.yml
@@ -147,20 +56,22 @@ async function downloadLearnLearningPath(learningPathFolder: string): Promise<Le
     const learningPathYaml = await fileDownloader.downloadFile(yamlItem.download_url);
     const { learningPath, moduleUids } = yamlProcessor.processLearningPathYaml(learningPathYaml);
 
-    const modules = await Promise.all(
-        moduleUids.map(async (uid) => {
-            try {
-                const path = pathUtilities.createPathFromUid(uid);
-                return await downloadLearnModule(path);
-            } catch (error) {
-                // Gracefully handle errors because sometimeis the UID isn't the folder path... 🙃
-                console.error(`Error downloading module for UID ${uid}:`, error);
-                return null;
-            }
-        }),
-    );
+    if (!skipModuleProcessing) {
+        const modules = await Promise.all(
+            moduleUids.map(async (uid) => {
+                try {
+                    const path = pathUtilities.createPathFromUid(uid);
+                    return await downloadLearnModule(path);
+                } catch (error) {
+                    // Gracefully handle errors because sometimeis the UID isn't the folder path... 🙃
+                    console.error(`Error downloading module for UID ${uid}:`, error);
+                    return null;
+                }
+            }),
+        );
 
-    learningPath.modules = modules.filter((module) => module != null);
+        learningPath.modules = modules.filter((module) => module != null);
+    }
 
     return learningPath;
 }

@@ -1,18 +1,24 @@
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 import { Module, Unit } from "~/github/githubTypes";
 import { Markdown } from "./markdown/Markdown";
+import { useModuleByUid } from "~/queries/useCatalogQueries";
+import { useState } from "react";
+import { ProgressMap } from "~/hooks/useProgressManagement";
 
-interface UnitViewProps {
+export interface UnitViewProps {
     unit: Unit;
     module: Module;
+
+    progress: ProgressMap;
 
     onUnitSelected: (unit: Unit) => void;
     onUnitCompleted: (nextUnit: Unit) => void;
     onModuleCompleted: (module: Module) => void;
 }
 
-export function UnitView({ unit, module, onUnitSelected, onUnitCompleted, onModuleCompleted }: UnitViewProps) {
-    const positionInModule = module.units?.findIndex((u) => u.uid === unit.uid) ?? -1;
+export function UnitView({ unit, module, onUnitSelected, onUnitCompleted, onModuleCompleted, progress }: UnitViewProps) {
+    const [showRaw, setShowRaw] = useState(false);
+    const positionInModule = module.units.findIndex((u) => u.uid === unit.uid);
 
     const firstIncompleteUnit = module.units.filter((u) => u.progress !== "completed")[0];
 
@@ -21,17 +27,41 @@ export function UnitView({ unit, module, onUnitSelected, onUnitCompleted, onModu
 
     const previousUnit = positionInModule > 0 ? module.units[positionInModule - 1] : null;
 
-    const allOtherUnitsCompleted = module.units.every((u) => u.progress === "completed" || u.uid === unit.uid);
+    const allOtherUnitsCompleted = module.units.every((u) => progress[u.uid] === "completed" || u.uid === unit.uid);
 
     return (
         <div className="p-4">
-            <h1 className="text-2xl font-bold mb-2 flex items-center">{unit.title}</h1>
+            <div className="flex items-start justify-between gap-4 mb-2">
+                <h1 className="text-2xl font-bold flex-1 break-words">{unit.title}</h1>
+                {unit.markdownContent && (
+                    <button
+                        type="button"
+                        onClick={() => setShowRaw((v) => !v)}
+                        className="text-xs bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 px-3 py-1 rounded-md font-medium tracking-wide uppercase"
+                        aria-pressed={showRaw}
+                    >
+                        {showRaw ? "Rendered" : "Raw"}
+                    </button>
+                )}
+            </div>
 
             <p className="text-zinc-500 text-sm mb-4">{unit.durationInMinutes} minutes</p>
 
-            {unit.markdownContent != null && (
+            {unit.markdownContent != null && !showRaw && (
                 <div className="prose prose-lg max-w-none">
                     <Markdown content={unit.markdownContent} images={module.imageReferenceMap} />
+                </div>
+            )}
+
+            {unit.markdownContent != null && showRaw && (
+                <div className="mb-4 border border-zinc-300 dark:border-zinc-700 rounded-md overflow-hidden">
+                    <div className="bg-zinc-100 dark:bg-zinc-800 px-3 py-2 text-xs font-semibold tracking-wide text-zinc-600 dark:text-zinc-300 flex items-center justify-between">
+                        <span>Raw Markdown</span>
+                        <span className="opacity-70">{unit.markdownContent.split(/\r?\n/).length} lines</span>
+                    </div>
+                    <pre className="m-0 p-3 overflow-auto text-sm leading-relaxed whitespace-pre-wrap font-mono bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 max-h-[60vh]">
+                        {unit.markdownContent}
+                    </pre>
                 </div>
             )}
 

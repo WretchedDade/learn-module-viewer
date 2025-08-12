@@ -9,6 +9,7 @@ import type {
     ExamRecord,
     CourseRecord,
     TaxonomyNode,
+    UnitRecord,
 } from "../microsoft-learn/responses";
 
 // Non-taxonomy content types
@@ -76,14 +77,14 @@ export function useMergedCertificationsQuery() {
 function isRetiredBySummary(summary?: string): boolean {
     if (!summary) return false;
     // Strip HTML tags and normalize whitespace
-    const text = summary.replace(/<[^>]*>/g, ' ').toLowerCase();
-    const s = text.replace(/\s+/g, ' ').trim();
+    const text = summary.replace(/<[^>]*>/g, " ").toLowerCase();
+    const s = text.replace(/\s+/g, " ").trim();
     if (!s) return false;
     // Common patterns we observed
-    if (s.includes('this certification has been retired')) return true;
-    if (s.includes('this certification is retired')) return true;
+    if (s.includes("this certification has been retired")) return true;
+    if (s.includes("this certification is retired")) return true;
     // Generic fallback: warnings that mention retired
-    if (s.startsWith('warning') && s.includes('retired')) return true;
+    if (s.startsWith("warning") && s.includes("retired")) return true;
     return false;
 }
 
@@ -155,24 +156,60 @@ export function useSubjectsQuery() {
 }
 
 // Detail-by-UID queries
-export function useModuleByUid(uid: string) {
-    return useQuery<ModuleRecord | undefined, Error>({
-        queryKey: ["catalog", "modules", "uid", uid],
+export function useUnitByUid(uid: string) {
+    return useQuery<UnitRecord | undefined, Error>({
+        queryKey: ["catalog", "units", "uid", uid],
         queryFn: async () => {
-            const d = await learnApi.fetchCatalog((b) => b.types("modules").uids(uid));
-            return d.modules?.[0];
+            const d = await learnApi.fetchCatalog((b) => b.types("units").uids(uid));
+            return d.units?.[0];
         },
         enabled: !!uid,
         refetchOnWindowFocus: false,
     });
 }
 
+// Detail-by-UID queries
+export function useModuleByUid(uid: string) {
+    return useQuery<ModuleRecord, Error>({
+        queryKey: ["catalog", "modules", "uid", uid],
+        queryFn: async () => {
+            const response = await learnApi.fetchCatalog((b) => b.types("modules").uids(uid));
+            const module = response.modules?.[0];
+
+            if (module == null) {
+                throw new Error(`Module with UID ${uid} not found`);
+            }
+
+            return module;
+        },
+        enabled: !!uid,
+        refetchOnWindowFocus: false,
+    });
+}
+
+// Details-by-UID queries
+export function useModulesByUid(uids: string[]) {
+    return useQuery<ModuleRecord[], Error>({
+        queryKey: ["catalog", "modules", "uid", ...uids],
+        queryFn: async () => {
+            const response = await learnApi.fetchCatalog((b) => b.types("modules").uids(...uids));
+            return response.modules ?? [];
+        },
+    });
+}
+
 export function useLearningPathByUid(uid: string) {
-    return useQuery<LearningPathRecord | undefined, Error>({
+    return useQuery<LearningPathRecord, Error>({
         queryKey: ["catalog", "learningPaths", "uid", uid],
         queryFn: async () => {
-            const d = await learnApi.fetchCatalog((b) => b.types("learningPaths").uids(uid));
-            return d.learningPaths?.[0];
+            const response = await learnApi.fetchCatalog((b) => b.types("learningPaths").uids(uid));
+            const learningPath = response.learningPaths?.[0];
+
+            if (!learningPath) {
+                throw new Error(`LearningPath with UID ${uid} not found`);
+            }
+
+            return learningPath;
         },
         enabled: !!uid,
         refetchOnWindowFocus: false,

@@ -28,7 +28,7 @@ function CardFrame({ children, className, to, ariaLabel }: { children: React.Rea
                     // border & ring
                     "border-gray-200 dark:border-zinc-700 focus-within:ring-2 focus-within:ring-blue-500/40",
                     // motion/hover effects
-                    "transition-transform duration-200 ease-out shadow-xs",
+                    "transition-transform duration-200 ease-out shadow",
                     "hover:bg-gray-50 dark:hover:bg-zinc-800/80",
                     "motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-lg",
                 ].join(" ")

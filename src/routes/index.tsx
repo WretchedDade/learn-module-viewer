@@ -100,7 +100,7 @@ function Home() {
                             { id: "courses", label: "Courses" },
                         ].map((c) => (
                             <a
-                                key={c.id}
+                                key={`CategoryChip-${c.id}`}
                                 href={`#${c.id}`}
                                 className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-700 hover:bg-gray-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
                             >
@@ -213,7 +213,7 @@ function Row<T extends DisplayRecord>({
             )}
             {query.isSuccess && (
                 <>
-                    {/* <div className="mb-2 flex justify-end">
+                    <div className="mb-2 flex justify-end">
                         {(query.data ?? []).length > effectiveTopCount && (
                             <button
                                 type="button"
@@ -223,7 +223,7 @@ function Row<T extends DisplayRecord>({
                                 {showAll ? "Show less" : `Show all ${(query.data ?? []).length}`}
                             </button>
                         )}
-                    </div> */}
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 items-stretch auto-rows-fr">
                         {selectItems(query.data ?? [], { topCount: effectiveTopCount, showAll, filter }).map((item) => (
                             <div key={item.uid} className="h-full">

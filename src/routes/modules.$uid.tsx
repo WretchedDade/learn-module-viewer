@@ -1,17 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useModuleByUid } from "../queries/useCatalogQueries";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
-import { ErrorDisplay } from "~/components/ErrorDisplay";
-import { LearningPathView } from "~/components/LearningPathView";
+import { useEffect, useRef, useState } from "react";
+import { useScrollReset } from "~/hooks/useScrollReset";
 import ModuleCompletionDialog from "~/components/ModuleCompletionDialog";
 import { ModuleView } from "~/components/ModuleView";
-import { Overview } from "~/components/Overview";
-import { TabType, completeContent, startIfNotStarted, SidePanel, LearningPathTab } from "~/components/SidePanel";
 import { UnitView } from "~/components/UnitView";
-import { ContentDownloadResult, DownloadContentFromGitHub, DownloadModuleFromGitHub } from "~/github/githubService";
-import { isModule, isLearningPath, Module } from "~/github/githubTypes";
+import { Module } from "~/github/githubTypes";
+import { ModuleSidePanel } from "~/components/side-panel/ModuleSidePanel";
+import { useModuleContentById } from "~/queries/useContentById";
+import { LearningPathTab, TabType } from "~/components/side-panel/SidePanel.types";
+import { SidePanel } from "~/components/side-panel/SidePanel";
+import { ModuleSkeleton, SidePanelHeaderSkeleton } from "~/components/SkeletonLoading";
+import { useProgressManagement } from "~/hooks/useProgressManagement";
 
 export const Route = createFileRoute("/modules/$uid")({
     component: ModuleDetail,
@@ -22,116 +21,117 @@ type ModuleOnlyTabType = Exclude<TabType, LearningPathTab>;
 function ModuleDetail() {
     const { uid } = Route.useParams();
 
-    const metadataQuery = useModuleByUid(uid);
-
-    const [activeTab, setActiveTab] = useState<ModuleOnlyTabType>({ type: "overview" });
+    const moduleQuery = useModuleContentById(uid);
+    const [activeTab, setActiveTab] = useState<ModuleOnlyTabType>({ type: "module", moduleId: uid });
+    const mainRef = useRef<HTMLElement | null>(null);
+    const resetScroll = useScrollReset({ container: mainRef });
 
     const [completedModule, setCompletedModule] = useState<Module | null>(null);
 
-    const downloadContent = useServerFn(DownloadModuleFromGitHub);
-    const moduleQuery = useQuery({
-        queryKey: ["module", uid],
-        queryFn: () => downloadContent({ data: { folderPath: metadataQuery.data!.url } }),
-        enabled: metadataQuery.isSuccess,
-        refetchOnWindowFocus: false,
-        refetchOnMount: false,
-    });
-
-    useEffect(() => {
-        if (moduleQuery.data?.status === "success" && activeTab.type === "overview") {
-            setActiveTab({ type: "module", module: moduleQuery.data.content });
-        }
-    }, [moduleQuery, activeTab]);
-
-    const result = moduleQuery.data ?? null;
+    const { state: progress, start, complete } = useProgressManagement();
 
     const onTabChange = (tab: ModuleOnlyTabType, triggerCompletion: boolean = false) => {
         setActiveTab(tab);
 
         if (triggerCompletion) {
-            completeContent(activeTab, result);
+            switch (activeTab.type) {
+                case "module":
+                    complete(activeTab.moduleId);
+                    break;
+                case "unit":
+                    complete(activeTab.unit.uid);
+                    break;
+            }
         }
 
-        startIfNotStarted(tab, result);
+        switch (tab.type) {
+            case "module":
+                start(tab.moduleId);
+                break;
+            case "unit":
+                start(tab.unit.uid);
+                break;
+        }
+
+        requestAnimationFrame(() => resetScroll());
     };
 
     return (
         <div className="dark:bg-zinc-900 min-h-[calc(100dvh-5rem)] dark:text-zinc-100">
-            <ErrorDisplay error={moduleQuery.error} />
-
             {completedModule != null && (
                 <ModuleCompletionDialog
                     module={completedModule}
                     open
                     onClose={() => {
                         setCompletedModule(null);
-
-                        if (result?.status === "success") {
-                            onTabChange({ type: "module", module: result.content }, true);
-                        }
+                        onTabChange({ type: "module", moduleId: uid }, true);
                     }}
                 />
             )}
 
             <div className="flex h-[calc(100dvh-66px)] overflow-hidden dark:bg-zinc-900">
-                <SidePanel
-                    activeTab={activeTab}
-                    setActiveTab={(tab) => onTabChange(tab as ModuleOnlyTabType)}
-                    result={result}
-                    isLoading={moduleQuery.isLoading}
-                />
+                {moduleQuery.isSuccess && (
+                    <ModuleSidePanel
+                        module={moduleQuery.data}
+                        activeTab={activeTab}
+                        progress={progress}
+                        setActiveTab={(tab) => onTabChange(tab as ModuleOnlyTabType)}
+                    />
+                )}
 
-                <main className="flex-1 overflow-auto">
+                {moduleQuery.isLoading && (
+                    <SidePanel header={<SidePanelHeaderSkeleton />}>
+                        <ModuleSkeleton showUnits />
+                    </SidePanel>
+                )}
+
+                <main ref={mainRef} className="flex-1 overflow-auto">
                     <div className="p-6 mx-auto">
-                        {activeTab.type === "overview" && (
+                        {moduleQuery.isSuccess && (
                             <>
-                            {/* loading state... */}
-                            {/* idk? */}
+                                {activeTab.type === "module" && (
+                                    <ModuleView
+                                        progress={progress}
+                                        module={moduleQuery.data}
+                                        onUnitSelected={(unit) =>
+                                            onTabChange({
+                                                type: "unit",
+                                                unit,
+                                                moduleId: activeTab.moduleId,
+                                            })
+                                        }
+                                    />
+                                )}
+
+                                {activeTab.type === "unit" && (
+                                    <UnitView
+                                        progress={progress}
+                                        unit={activeTab.unit}
+                                        module={moduleQuery.data}
+                                        onUnitSelected={(unit) =>
+                                            onTabChange({
+                                                type: "unit",
+                                                unit,
+                                                moduleId: activeTab.moduleId,
+                                            })
+                                        }
+                                        onUnitCompleted={(nextUnit) =>
+                                            onTabChange(
+                                                {
+                                                    type: "unit",
+                                                    unit: nextUnit,
+                                                    moduleId: activeTab.moduleId,
+                                                },
+                                                true,
+                                            )
+                                        }
+                                        onModuleCompleted={(module) => {
+                                            onTabChange({ type: "module", moduleId: module.uid! }, true);
+                                            setCompletedModule(module);
+                                        }}
+                                    />
+                                )}
                             </>
-                        )}
-
-                        {activeTab.type === "module" && (
-                            <ModuleView
-                                module={activeTab.module}
-                                onUnitSelected={(unit) =>
-                                    onTabChange({
-                                        type: "unit",
-                                        unit,
-                                        module: activeTab.module,
-                                        learningPath: activeTab.learningPath,
-                                    })
-                                }
-                            />
-                        )}
-
-                        {activeTab.type === "unit" && (
-                            <UnitView
-                                unit={activeTab.unit}
-                                module={activeTab.module}
-                                onUnitSelected={(unit) =>
-                                    onTabChange({
-                                        type: "unit",
-                                        unit,
-                                        module: activeTab.module,
-                                        learningPath: activeTab.learningPath,
-                                    })
-                                }
-                                onUnitCompleted={(nextUnit) =>
-                                    onTabChange(
-                                        {
-                                            type: "unit",
-                                            unit: nextUnit,
-                                            module: activeTab.module,
-                                            learningPath: activeTab.learningPath,
-                                        },
-                                        true,
-                                    )
-                                }
-                                onModuleCompleted={(module) => {
-                                    onTabChange({ type: "module", module, learningPath: activeTab.learningPath }, true);
-                                    setCompletedModule(module);
-                                }}
-                            />
                         )}
                     </div>
                 </main>

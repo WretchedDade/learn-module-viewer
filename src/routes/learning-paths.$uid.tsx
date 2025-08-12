@@ -1,17 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useLearningPathByUid } from "../queries/useCatalogQueries";
-import { completeContent, SidePanel, startIfNotStarted, TabType } from "~/components/SidePanel";
-import { DownloadLearningPathFromGitHub } from "~/github/githubService";
-import { useQuery } from "@tanstack/react-query";
-import { isLearningPath, isModule, Module } from "~/github/githubTypes";
-import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { Module, Unit, Progress } from "~/github/githubTypes";
+import { act, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useScrollReset } from "~/hooks/useScrollReset";
 import { ErrorDisplay } from "~/components/ErrorDisplay";
 import { LearningPathView } from "~/components/LearningPathView";
 import ModuleCompletionDialog from "~/components/ModuleCompletionDialog";
-import { ModuleView } from "~/components/ModuleView";
-import { Overview } from "~/components/Overview";
-import { UnitView } from "~/components/UnitView";
+import { ModuleView, ModuleViewProps } from "~/components/ModuleView";
+import { UnitView, UnitViewProps } from "~/components/UnitView";
+import { useModuleContentById } from "~/queries/useContentById";
+import { TabType } from "~/components/side-panel/SidePanel.types";
+import { LearningPathSidePanel } from "~/components/side-panel/LearningPathSidePanel";
+import { useProgressManagement } from "~/hooks/useProgressManagement";
+
+// Progress state decoupled from content objects
+interface ModuleProgressState {
+    progress: Progress; // module progress
+    totalUnits: number;
+    units: Record<string, Progress>; // unitId -> progress
+}
+type ModuleProgressMap = Record<string, ModuleProgressState>;
 
 export const Route = createFileRoute("/learning-paths/$uid")({
     component: LearningPathDetail,
@@ -19,35 +27,51 @@ export const Route = createFileRoute("/learning-paths/$uid")({
 
 function LearningPathDetail() {
     const { uid } = Route.useParams();
-    const metadataQuery = useLearningPathByUid(uid);
 
-    const [activeTab, setActiveTab] = useState<TabType>({ type: "overview" });
+    const learningPathQuery = useLearningPathByUid(uid);
+
+    const [activeTab, setActiveTab] = useState<TabType>({ type: "learningPath", learningPathId: uid });
+    const mainRef = useRef<HTMLElement | null>(null);
+    const resetScroll = useScrollReset({ container: mainRef });
 
     const [completedModule, setCompletedModule] = useState<Module | null>(null);
 
-    const downloadContent = useServerFn(DownloadLearningPathFromGitHub);
-    const learningPathQuery = useQuery({
-        queryKey: ["learning-path", uid],
-        queryFn: () => downloadContent({ data: { folderPath: metadataQuery.data!.url } }),
-        enabled: metadataQuery.isSuccess,
-        refetchOnWindowFocus: false,
-        refetchOnMount: false,
-    });
-
-    const result = learningPathQuery.data ?? null;
+    const { state: progress, start, complete } = useProgressManagement();
 
     const onTabChange = (tab: TabType, triggerCompletion: boolean = false) => {
         setActiveTab(tab);
 
         if (triggerCompletion) {
-            completeContent(activeTab, result);
+            switch (activeTab.type) {
+                case "learningPath":
+                    complete(activeTab.learningPathId);
+                    break;
+                case "module":
+                    complete(activeTab.moduleId);
+                    break;
+                case "unit":
+                    complete(activeTab.unit.uid);
+                    break;
+            }
         }
 
-        startIfNotStarted(tab, result);
+        switch (tab.type) {
+            case "learningPath":
+                start(tab.learningPathId);
+                break;
+            case "module":
+                start(tab.moduleId);
+                break;
+            case "unit":
+                start(tab.unit.uid);
+                break;
+        }
+
+        requestAnimationFrame(() => resetScroll());
     };
 
     return (
-        <div className="dark:bg-zinc-900 min-h-screen dark:text-zinc-100">
+        <div className="dark:bg-zinc-900 min-h-[calc(100dvh-5rem)] dark:text-zinc-100">
             <ErrorDisplay error={learningPathQuery.error} />
 
             {completedModule != null && (
@@ -56,90 +80,128 @@ function LearningPathDetail() {
                     open
                     onClose={() => {
                         setCompletedModule(null);
-
-                        if (result?.status === "success") {
-                            if (isLearningPath(result.content)) {
-                                onTabChange({ type: "learningPath", learningPath: result.content }, true);
-                            }
-
-                            if (isModule(result.content)) {
-                                onTabChange({ type: "module", module: result.content }, true);
-                            }
-                        }
+                        onTabChange({ type: "learningPath", learningPathId: uid }, true);
                     }}
                 />
             )}
 
-            <div className="flex h-screen dark:bg-zinc-900">
-                <SidePanel
-                    activeTab={activeTab}
-                    setActiveTab={onTabChange}
-                    result={result}
-                    isLoading={learningPathQuery.isLoading}
-                />
+            <div className="flex h-[calc(100dvh-66px)] dark:bg-zinc-900">
+                {learningPathQuery.isSuccess && (
+                    <LearningPathSidePanel
+                        progress={progress}
+                        learningPath={learningPathQuery.data}
+                        activeTab={activeTab}
+                        setActiveTab={onTabChange}
+                    />
+                )}
 
-                <main className="flex-1 overflow-auto">
+                <main ref={mainRef} className="flex-1 overflow-auto">
                     <div className="p-6 mx-auto">
-                        {activeTab.type === "overview" && (
+                        {learningPathQuery.isSuccess && (
                             <>
-                                {/* loading state... */}
-                                {/* idk? */}
-                            </>
-                        )}
+                                {activeTab.type === "learningPath" && (
+                                    <LearningPathView
+                                        progress={progress}
+                                        learningPathId={uid}
+                                        onModuleSelected={(moduleId) =>
+                                            onTabChange({ type: "module", moduleId, learningPathId: uid })
+                                        }
+                                    />
+                                )}
+                                {activeTab.type === "module" && (
+                                    <ModuleViewWithFetching
+                                        progress={progress}
+                                        moduleId={activeTab.moduleId}
+                                        onUnitSelected={(unit) => {
+                                            onTabChange({
+                                                type: "unit",
+                                                unit,
+                                                moduleId: activeTab.moduleId,
+                                                learningPathId: activeTab.learningPathId,
+                                            });
+                                        }}
+                                    />
+                                )}
+                                {activeTab.type === "unit" && (
+                                    <UnitViewWithFetching
+                                        progress={progress}
+                                        unit={activeTab.unit}
+                                        moduleId={activeTab.moduleId}
+                                        onUnitSelected={(unit) =>
+                                            onTabChange({
+                                                type: "unit",
+                                                unit,
+                                                moduleId: activeTab.moduleId,
+                                                learningPathId: activeTab.learningPathId,
+                                            })
+                                        }
+                                        onUnitCompleted={(nextUnit) => {
+                                            onTabChange(
+                                                {
+                                                    type: "unit",
+                                                    unit: nextUnit,
+                                                    moduleId: activeTab.moduleId,
+                                                    learningPathId: activeTab.learningPathId,
+                                                },
+                                                true,
+                                            );
+                                        }}
+                                        onModuleCompleted={(module) => {
+                                            onTabChange(
+                                                {
+                                                    type: "module",
+                                                    moduleId: module.uid!,
+                                                    learningPathId: activeTab.learningPathId,
+                                                },
+                                                true,
+                                            );
 
-                        {activeTab.type === "learningPath" && (
-                            <LearningPathView
-                                learningPath={activeTab.learningPath}
-                                onModuleSelected={(module) =>
-                                    onTabChange({ type: "module", module, learningPath: activeTab.learningPath })
-                                }
-                            />
-                        )}
-                        {activeTab.type === "module" && (
-                            <ModuleView
-                                module={activeTab.module}
-                                onUnitSelected={(unit) =>
-                                    onTabChange({
-                                        type: "unit",
-                                        unit,
-                                        module: activeTab.module,
-                                        learningPath: activeTab.learningPath,
-                                    })
-                                }
-                            />
-                        )}
-                        {activeTab.type === "unit" && (
-                            <UnitView
-                                unit={activeTab.unit}
-                                module={activeTab.module}
-                                onUnitSelected={(unit) =>
-                                    onTabChange({
-                                        type: "unit",
-                                        unit,
-                                        module: activeTab.module,
-                                        learningPath: activeTab.learningPath,
-                                    })
-                                }
-                                onUnitCompleted={(nextUnit) =>
-                                    onTabChange(
-                                        {
-                                            type: "unit",
-                                            unit: nextUnit,
-                                            module: activeTab.module,
-                                            learningPath: activeTab.learningPath,
-                                        },
-                                        true,
-                                    )
-                                }
-                                onModuleCompleted={(module) => {
-                                    onTabChange({ type: "module", module, learningPath: activeTab.learningPath }, true);
-                                    setCompletedModule(module);
-                                }}
-                            />
+                                            complete(module.uid!);
+                                            setCompletedModule(module);
+                                        }}
+                                    />
+                                )}
+                            </>
                         )}
                     </div>
                 </main>
             </div>
         </div>
     );
+}
+
+interface ModuleViewWithFetchingProps extends Omit<ModuleViewProps, "module"> {
+    moduleId: string;
+}
+
+function ModuleViewWithFetching({ moduleId, ...props }: ModuleViewWithFetchingProps) {
+    const moduleQuery = useModuleContentById(moduleId);
+
+    if (moduleQuery.isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (!moduleQuery.isSuccess) {
+        return <div>Error loading module</div>;
+    }
+
+    return <ModuleView module={moduleQuery.data} {...props} />;
+}
+
+interface UnitViewWithFetchingProps extends Omit<UnitViewProps, "module"> {
+    moduleId: string;
+}
+
+function UnitViewWithFetching({ moduleId, ...props }: UnitViewWithFetchingProps) {
+    const moduleQuery = useModuleContentById(moduleId);
+
+    if (moduleQuery.isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (!moduleQuery.isSuccess) {
+        return <div>Error loading module</div>;
+    }
+
+    return <UnitView module={moduleQuery.data} {...props} />;
 }

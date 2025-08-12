@@ -2,13 +2,20 @@ import { Module, Unit } from "~/github/githubTypes";
 import { ProgressTag } from "./ProgressTag";
 import { Tag } from "./Tag";
 import { Markdown } from "./markdown/Markdown";
+import { useServerFn } from "@tanstack/react-start";
+import { DownloadModuleFromGitHub } from "~/github/githubService";
+import { useQuery } from "@tanstack/react-query";
+import { ErrorDisplay } from "./ErrorDisplay";
+import { ModuleSkeleton } from "./SkeletonLoading";
+import { ProgressMap } from "~/hooks/useProgressManagement";
 
-interface ModuleViewProps {
+export interface ModuleViewProps {
+    progress: ProgressMap;
     module: Module;
     onUnitSelected: (unit: Unit) => void;
 }
 
-export function ModuleView({ module, onUnitSelected }: ModuleViewProps) {
+export function ModuleView({ module, onUnitSelected, progress }: ModuleViewProps) {
     const allTags = [...(module.levels || []), ...(module.roles || []), ...(module.products || [])].filter(Boolean);
 
     const totalDuration = module.units?.reduce((total, unit) => total + (unit.durationInMinutes || 0), 0) || 0;
@@ -16,11 +23,13 @@ export function ModuleView({ module, onUnitSelected }: ModuleViewProps) {
     return (
         <div className="p-4">
             <div className="flex gap-4 mb-4">
-                <img
-                    src={`https://learn.microsoft.com/en-us/${module.iconUrl}`}
-                    alt={`${module.title} icon`}
-                    className="w-16 h-16"
-                />
+                {module.iconUrl && (
+                    <img
+                        src={`https://learn.microsoft.com/en-us/${module.iconUrl}`}
+                        alt={`${module.title} icon`}
+                        className="w-16 h-16"
+                    />
+                )}
                 <div>
                     <h1 className="text-2xl font-bold mb-2 flex items-center">{module.title}</h1>
                     <p className="text-zinc-600 dark:text-zinc-500 text-sm mb-4">{totalDuration} minutes</p>
@@ -36,7 +45,7 @@ export function ModuleView({ module, onUnitSelected }: ModuleViewProps) {
                             {allTags.map((tag) => (
                                 <Tag
                                     rounded
-                                    key={tag}
+                                    key={`ModuleView-Tag-${tag}`}
                                     className="bg-blue-600/20 text-blue-700 dark:text-blue-300 border-blue-500/30"
                                 >
                                     {tag.replace("-", " ")}
@@ -66,7 +75,7 @@ export function ModuleView({ module, onUnitSelected }: ModuleViewProps) {
                     <div className="space-y-4">
                         {module.units.map((unit, index) => (
                             <button
-                                key={unit.uid || index}
+                                key={`ModuleView-Unit-${unit.uid}`}
                                 onClick={() => onUnitSelected(unit)}
                                 className="w-full text-left px-4 py-2 border-l-4 border-zinc-500 hover:border-blue-600 text-zinc-700 dark:text-zinc-200 hover:text-blue-400 transition-colors"
                             >
@@ -75,7 +84,7 @@ export function ModuleView({ module, onUnitSelected }: ModuleViewProps) {
                                         {index + 1}. {unit.title}
                                     </h3>
 
-                                    <ProgressTag className="ml-4" progress={unit.progress} />
+                                    <ProgressTag className="ml-4" progress={progress[unit.uid!] ?? "not-started"} />
                                 </div>
                                 {unit.durationInMinutes && (
                                     <span className="text-zinc-600 dark:text-zinc-300 text-xs rounded-md font-medium shrink-0">
