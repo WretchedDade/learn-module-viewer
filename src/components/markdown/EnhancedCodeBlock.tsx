@@ -53,7 +53,7 @@ export function EnhancedCodeBlock({
                             {filename || 'Code'}
                         </span>
                         <span className="text-zinc-500 text-xs px-2 py-1 bg-zinc-300 dark:bg-zinc-700 rounded-sm">
-                            {language}
+                            {language === 'csharp' ? 'c#' : language}
                         </span>
                     </div>
                     {highlight && (

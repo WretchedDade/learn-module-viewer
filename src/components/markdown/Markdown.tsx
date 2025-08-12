@@ -7,6 +7,9 @@ import { EnhancedCodeBlock } from "./EnhancedCodeBlock";
 import { EnhancedImage } from "./EnhancedImage";
 import { remarkEnhancedCodeBlocks } from "./remarkEnhancedCodeBlocks";
 import { remarkEnhancedImages } from "./remarkEnhancedImages";
+import { remarkLearnPivots } from "./remarkLearnPivots";
+import { PivotProvider } from "./PivotContext";
+import { PivotGroup } from "./PivotGroup";
 import { VideoBlock } from "./VideoBlock";
 
 interface MarkdownProps {
@@ -15,17 +18,31 @@ interface MarkdownProps {
 }
 
 export function Markdown({ content, images }: MarkdownProps) {
+    const pivotGroupCache = new Map<any, { setId: string; values: string[]; items: Record<string, any> }>();
+
     const markdownComponents = {
         // Custom styling for markdown elements to match dark theme
-        h1: ({ children }: any) => <h1 className="text-xl font-bold text-zinc-900 dark:text-white mb-3 mt-4 first:mt-0">{children}</h1>,
-        h2: ({ children }: any) => <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-100 mb-2 mt-3 first:mt-0">{children}</h2>,
-        h3: ({ children }: any) => <h3 className="text-md font-medium text-zinc-700 dark:text-zinc-200 mb-2 mt-3 first:mt-0">{children}</h3>,
+        h1: ({ children }: any) => (
+            <h1 className="text-xl font-bold text-zinc-900 dark:text-white mb-3 mt-4 first:mt-0">{children}</h1>
+        ),
+        h2: ({ children }: any) => (
+            <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-100 mb-2 mt-3 first:mt-0">{children}</h2>
+        ),
+        h3: ({ children }: any) => (
+            <h3 className="text-md font-medium text-zinc-700 dark:text-zinc-200 mb-2 mt-3 first:mt-0">{children}</h3>
+        ),
         p: ({ children }: any) => {
             // Regular paragraph
             return <p className="text-zinc-700 dark:text-zinc-300 mb-3 leading-relaxed">{children}</p>;
         },
-        ul: ({ children }: any) => <ul className="list-disc list-outside text-zinc-700 dark:text-zinc-300 mb-3 space-y-1 pl-6">{children}</ul>,
-        ol: ({ children }: any) => <ol className="list-decimal list-outside text-zinc-700 dark:text-zinc-300 mb-3 space-y-1 pl-6">{children}</ol>,
+        ul: ({ children }: any) => (
+            <ul className="list-disc list-outside text-zinc-700 dark:text-zinc-300 mb-3 space-y-1 pl-6">{children}</ul>
+        ),
+        ol: ({ children }: any) => (
+            <ol className="list-decimal list-outside text-zinc-700 dark:text-zinc-300 mb-3 space-y-1 pl-6">
+                {children}
+            </ol>
+        ),
         li: ({ children }: any) => <li className="text-zinc-700 dark:text-zinc-300">{children}</li>,
         blockquote: ({ children }: any) => {
             // Helper function to extract text content from React elements
@@ -55,7 +72,11 @@ export function Markdown({ content, images }: MarkdownProps) {
             }
 
             // Regular blockquote
-            return <blockquote className="border-l-4 border-blue-500 pl-4 italic text-zinc-600 dark:text-zinc-400 my-3">{children}</blockquote>;
+            return (
+                <blockquote className="border-l-4 border-blue-500 pl-4 italic text-zinc-600 dark:text-zinc-400 my-3">
+                    {children}
+                </blockquote>
+            );
         },
         code: ({ node, inline, className, children, ...props }: any) => {
             // Check if this is inline code (either inline=true or no parent pre element)
@@ -86,18 +107,39 @@ export function Markdown({ content, images }: MarkdownProps) {
                 const language = codeNode.properties["data-language"] || "";
                 // Try data-code first (from our plugin), fall back to extracting from children
                 const code =
-                    codeNode.properties["data-code"] || (typeof codeElement?.children === "string" ? codeElement.children : Array.isArray(codeElement?.children) ? codeElement.children.join("") : "");
+                    codeNode.properties["data-code"] ||
+                    (typeof codeElement?.children === "string"
+                        ? codeElement.children
+                        : Array.isArray(codeElement?.children)
+                          ? codeElement.children.join("")
+                          : "");
                 const highlight = codeNode.properties["data-highlight"];
                 const filename = codeNode.properties["data-filename"];
                 const source = codeNode.properties["data-source"];
 
-                return <EnhancedCodeBlock code={code} language={language} highlight={highlight} filename={filename} source={source} />;
+                return (
+                    <EnhancedCodeBlock
+                        code={code}
+                        language={language}
+                        highlight={highlight}
+                        filename={filename}
+                        source={source}
+                    />
+                );
             }
 
-            // Extract language from className for normal code blocks
-            const className = codeElement?.className || "";
-            const languageMatch = className.match(/language-(\w+)/);
-            const language = languageMatch ? languageMatch[1] : null;
+            // Extract language from the underlying mdast node first (preserves symbols like '#')
+            let language: string | null = codeElement?.node?.lang || null;
+            // Fallback to parsing className tokens if needed
+            if (!language) {
+                const className: string = codeElement?.className || "";
+                const langToken = className.split(/\s+/).find((t: string) => t.startsWith("language-"));
+                if (langToken) {
+                    language = langToken.slice(9) || null; // keep raw remainder even if contains symbols
+                }
+            }
+            // Normalization for display
+            const displayLanguage = language === "csharp" ? "c#" : language;
 
             // Normal pre block with optional language label in top right
             return (
@@ -105,12 +147,21 @@ export function Markdown({ content, images }: MarkdownProps) {
                     <pre className="bg-zinc-200 dark:bg-zinc-800 overflow-x-auto p-3 rounded-sm" {...props}>
                         {children}
                     </pre>
-                    {language && <div className="absolute top-2 right-2 bg-zinc-300 dark:bg-zinc-700 px-2 py-1 rounded-sm text-xs font-mono text-zinc-700 dark:text-zinc-400">{language}</div>}
+                    {displayLanguage && (
+                        <div className="capitalize absolute top-2 right-2 bg-zinc-300 dark:bg-zinc-700 px-2 py-1 rounded-sm text-xs font-mono text-zinc-700 dark:text-zinc-400">
+                            {displayLanguage}
+                        </div>
+                    )}
                 </div>
             );
         },
         a: ({ children, href }: any) => (
-            <a href={href} className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer">
+            <a
+                href={href}
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 underline"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
                 {children}
             </a>
         ),
@@ -119,8 +170,14 @@ export function Markdown({ content, images }: MarkdownProps) {
                 <table className="min-w-full border-collapse border border-zinc-600">{children}</table>
             </div>
         ),
-        th: ({ children }: any) => <th className="border border-zinc-600 bg-zinc-300 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-3 py-2 text-left font-semibold">{children}</th>,
-        td: ({ children }: any) => <td className="border border-zinc-600 text-zinc-700 dark:text-zinc-300 px-3 py-2">{children}</td>,
+        th: ({ children }: any) => (
+            <th className="border border-zinc-600 bg-zinc-300 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-3 py-2 text-left font-semibold">
+                {children}
+            </th>
+        ),
+        td: ({ children }: any) => (
+            <td className="border border-zinc-600 text-zinc-700 dark:text-zinc-300 px-3 py-2">{children}</td>
+        ),
         div: ({ className, ...props }: any) => {
             // Handle enhanced code blocks
             if (className?.includes("enhanced-code-block")) {
@@ -130,7 +187,15 @@ export function Markdown({ content, images }: MarkdownProps) {
                 const filename = props["data-filename"];
                 const source = props["data-source"];
 
-                return <EnhancedCodeBlock code={code} language={language} highlight={highlight} filename={filename} source={source} />;
+                return (
+                    <EnhancedCodeBlock
+                        code={code}
+                        language={language}
+                        highlight={highlight}
+                        filename={filename}
+                        source={source}
+                    />
+                );
             }
 
             // Regular div
@@ -165,29 +230,58 @@ export function Markdown({ content, images }: MarkdownProps) {
             // Regular image
             return <img src={src} alt={alt} className="max-w-full h-auto rounded-sm my-3" loading="lazy" {...props} />;
         },
+        // Raw DOM node names produced by our remark plugin (hName)
+        ["pivot-group"]: ({ node, children }: any) => {
+            const setId = node?.properties?.["data-pivot-set"] || "";
+            const valuesAttr = node?.properties?.["data-pivot-values"] || "";
+            const values = typeof valuesAttr === "string" ? valuesAttr.split(",").filter(Boolean) : [];
+            const items: Record<string, any> = {};
+            const renderedChildren = Array.isArray(children) ? children : [children];
+            renderedChildren.forEach((childEl: any) => {
+                if (childEl && childEl.props && childEl.props["data-pivot-value"]) {
+                    items[childEl.props["data-pivot-value"]] = childEl.props.children;
+                }
+            });
+            // Fallback: if items empty map by index ordering
+            if (Object.keys(items).length === 0) {
+                values.forEach((v, idx) => {
+                    items[v] = renderedChildren[idx]?.props?.children ?? renderedChildren[idx];
+                });
+            }
+            return <PivotGroup setId={setId} values={values} items={items} />;
+        },
+        ["pivot-item"]: ({ children }: any) => <div className="pivot-item">{children}</div>,
     };
 
     return (
-        <ReactMarkdown
-            remarkPlugins={[remarkEnhancedCodeBlocks, remarkEnhancedImages, remarkGfm, remarkBreaks]}
-            rehypePlugins={[
-                [
-                    rehypeHighlight,
-                    {
-                        detect: true,
-                        ignoreMissing: true,
-                        aliases: {
-                            js: "javascript",
-                            ts: "typescript",
-                            jsx: "javascript",
-                            tsx: "typescript",
+        <PivotProvider>
+            <ReactMarkdown
+                remarkPlugins={[
+                    remarkEnhancedCodeBlocks,
+                    remarkEnhancedImages,
+                    remarkLearnPivots,
+                    remarkGfm,
+                    remarkBreaks,
+                ]}
+                rehypePlugins={[
+                    [
+                        rehypeHighlight,
+                        {
+                            detect: true,
+                            ignoreMissing: true,
+                            aliases: {
+                                js: "javascript",
+                                ts: "typescript",
+                                jsx: "javascript",
+                                tsx: "typescript",
+                            },
                         },
-                    },
-                ],
-            ]}
-            components={markdownComponents}
-        >
-            {content}
-        </ReactMarkdown>
+                    ],
+                ]}
+                components={markdownComponents}
+            >
+                {content}
+            </ReactMarkdown>
+        </PivotProvider>
     );
 }
