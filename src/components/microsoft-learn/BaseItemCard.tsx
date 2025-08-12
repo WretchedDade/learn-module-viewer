@@ -17,9 +17,22 @@ type BaseProps = {
     durationLabel?: string;
 };
 
-function CardFrame({ children, className, to, ariaLabel }: { children: React.ReactNode; className?: string; to?: string; ariaLabel?: string }) {
+function CardFrame({
+    title,
+    children,
+    className,
+    to,
+    ariaLabel,
+}: {
+    title: string;
+    children: React.ReactNode;
+    className?: string;
+    to?: string;
+    ariaLabel?: string;
+}) {
     return (
         <div
+            title={title}
             className={
                 (className ? className + " " : "") +
                 [
@@ -66,13 +79,13 @@ function CardBody({
         <div className="p-3 flex flex-col flex-1">
             <div className="flex gap-3">
                 {beforeTitle}
-                <div className="font-medium text-sm break-words line-clamp-2 h-10" title={title}>
+                <div className="font-medium text-sm truncate" title={title}>
                     {title}
                 </div>
             </div>
-            <div className="mt-2 grow">
+            <div className="grow mt-2">
                 {showSummary && (
-                    <div className="text-xs text-gray-600 dark:text-zinc-400 line-clamp-3" title={summary}>
+                    <div className="text-xs text-gray-600 dark:text-zinc-400 line-clamp-2" title={summary}>
                         {summary}
                     </div>
                 )}
@@ -109,7 +122,7 @@ export function BannerItemCard({
     const showImg = !!bannerSrc && !fail;
     const initials = getInitials(title);
     return (
-        <CardFrame className={className} to={to} ariaLabel={title}>
+        <CardFrame title={title} className={className} to={to} ariaLabel={title}>
             <div className="relative w-full aspect-641/321 bg-gray-100 dark:bg-zinc-700">
                 {!showImg && (
                     <div className="absolute inset-0 grid place-items-center text-gray-600 dark:text-zinc-200 text-lg font-semibold">
@@ -171,7 +184,7 @@ export function IconItemCard({
         />
     ) : null;
     return (
-        <CardFrame className={className} to={to} ariaLabel={title}>
+        <CardFrame title={title} className={className} to={to} ariaLabel={title}>
             <CardBody
                 title={title}
                 summary={summary}
@@ -186,7 +199,7 @@ export function IconItemCard({
 // ItemCard: simple text-only card
 export function ItemCard({ title, uid, url, to, summary, tags, footer, className, durationLabel }: BaseProps) {
     return (
-    <CardFrame className={className} to={to} ariaLabel={title}>
+        <CardFrame title={title} className={className} to={to} ariaLabel={title}>
             <CardBody
                 title={title}
                 summary={summary}
