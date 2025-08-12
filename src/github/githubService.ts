@@ -1,10 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { fileDownloader } from "./fileDownloader";
-import { Content, isModule, isUnit, LearningPath, Module, Unit } from "./githubTypes";
+import { isModule, isUnit, LearningPath, Module, Unit } from "./githubTypes";
 import { pathUtilities } from "./pathUtilities";
-import { utils } from "./utils";
 import { yamlProcessor } from "./yamlProcessor";
-import { M } from "node_modules/framer-motion/dist/types.d-Cjd591yU";
 
 export interface ContentDownloadRequest {
     folderPath: string;
