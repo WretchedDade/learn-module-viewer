@@ -1,4 +1,4 @@
-import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { learnApi } from "./learnApi";
 import type {
     ModuleRecord,
@@ -168,9 +168,10 @@ export function useUnitByUid(uid: string) {
     });
 }
 
-export function getModuleByUidOptions(uid: string) {
-    return queryOptions<ModuleRecord, Error>({
-        queryKey: ["module", uid],
+// Detail-by-UID queries
+export function useModuleByUid(uid: string) {
+    return useQuery<ModuleRecord, Error>({
+        queryKey: ["catalog", "modules", "uid", uid],
         queryFn: async () => {
             const response = await learnApi.fetchCatalog((b) => b.types("modules").uids(uid));
             const module = response.modules?.[0];
@@ -181,12 +182,9 @@ export function getModuleByUidOptions(uid: string) {
 
             return module;
         },
+        enabled: !!uid,
+        refetchOnWindowFocus: false,
     });
-}
-
-// Detail-by-UID queries
-export function useModuleByUid(uid: string) {
-    return useQuery(getModuleByUidOptions(uid));
 }
 
 // Details-by-UID queries
@@ -200,25 +198,22 @@ export function useModulesByUid(uids: string[]) {
     });
 }
 
-export function getLearningPathByUidOptions(uid: string) {
-    return queryOptions<LearningPathRecord, Error>({
+export function useLearningPathByUid(uid: string) {
+    return useQuery<LearningPathRecord, Error>({
         queryKey: ["catalog", "learningPaths", "uid", uid],
         queryFn: async () => {
             const response = await learnApi.fetchCatalog((b) => b.types("learningPaths").uids(uid));
             const learningPath = response.learningPaths?.[0];
 
             if (!learningPath) {
-                throw new Error(`Learning Path with UID ${uid} not found`);
+                throw new Error(`LearningPath with UID ${uid} not found`);
             }
 
             return learningPath;
         },
         enabled: !!uid,
+        refetchOnWindowFocus: false,
     });
-}
-
-export function useLearningPathByUid(uid: string) {
-    return useSuspenseQuery(getLearningPathByUidOptions(uid));
 }
 
 export function useAppliedSkillByUid(uid: string) {

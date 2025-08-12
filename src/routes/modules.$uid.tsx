@@ -6,18 +6,14 @@ import { ModuleView } from "~/components/ModuleView";
 import { UnitView } from "~/components/UnitView";
 import { Module } from "~/github/githubTypes";
 import { ModuleSidePanel } from "~/components/side-panel/ModuleSidePanel";
+import { useModuleContentById } from "~/queries/useContentById";
 import { LearningPathTab, TabType } from "~/components/side-panel/SidePanel.types";
 import { SidePanel } from "~/components/side-panel/SidePanel";
 import { ModuleSkeleton, SidePanelHeaderSkeleton } from "~/components/SkeletonLoading";
 import { useProgressManagement } from "~/hooks/useProgressManagement";
-import { getModuleByUidOptions } from "~/queries/useCatalogQueries";
-import { useModuleContentById } from "~/queries/useContentById";
 
 export const Route = createFileRoute("/modules/$uid")({
     component: ModuleDetail,
-    loader: async ({ params, context: { queryClient } }) => {
-        queryClient.prefetchQuery(getModuleByUidOptions(params.uid));
-    },
 });
 
 type ModuleOnlyTabType = Exclude<TabType, LearningPathTab>;

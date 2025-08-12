@@ -38,6 +38,8 @@ function resolveRelativePath(relativePath: string, basePath: string): string {
 // Helper function to extract folder path from Microsoft Learn module URL
 async function extractFolderPathFromLearnModuleUrl(learnUrl: string): Promise<string> {
     try {
+        console.log(`Fetching Learn module page: ${learnUrl}`);
+
         const response = await fetch(learnUrl, {
             headers: {
                 "User-Agent": "Learn-Module-Viewer",
@@ -55,27 +57,27 @@ async function extractFolderPathFromLearnModuleUrl(learnUrl: string): Promise<st
         const match = html.match(metaTagRegex);
 
         if (!match) {
-            throw new Error(
-                "Could not find source_path meta tag in the Learn module page. Make sure this is a valid Microsoft Learn module URL.",
-            );
+            throw new Error("Could not find source_path meta tag in the Learn module page. Make sure this is a valid Microsoft Learn module URL.");
         }
 
         const sourcePath = match[1];
+        console.log(`Found source_path: ${sourcePath}`);
 
         // Remove /index.yml from the end to get the folder path
         const folderPath = sourcePath.replace(/\/index\.yml$/, "");
+        console.log(`Extracted folder path: ${folderPath}`);
 
         return folderPath;
     } catch (error) {
         console.error("Error extracting folder path from Learn URL:", error);
-        throw new Error(
-            `Failed to extract folder path from Learn URL: ${error instanceof Error ? error.message : "Unknown error"}`,
-        );
+        throw new Error(`Failed to extract folder path from Learn URL: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
 }
 
 async function extractFolderPathFromLearnLearningPathUrl(learnUrl: string): Promise<string> {
     try {
+        console.log(`Fetching Learn learning path page: ${learnUrl}`);
+
         const response = await fetch(learnUrl, {
             headers: {
                 "User-Agent": "Learn-Module-Viewer",
@@ -93,12 +95,11 @@ async function extractFolderPathFromLearnLearningPathUrl(learnUrl: string): Prom
         const match = html.match(metaTagRegex);
 
         if (!match) {
-            throw new Error(
-                "Could not find original_content_git_url meta tag in the Learn learning path page. Make sure this is a valid Microsoft Learn learning path URL.",
-            );
+            throw new Error("Could not find original_content_git_url meta tag in the Learn learning path page. Make sure this is a valid Microsoft Learn learning path URL.");
         }
 
         const gitUrl = match[1];
+        console.log(`Found original_content_git_url: ${gitUrl}`);
 
         // Extract the path from the GitHub URL
         // Example: https://github.com/MicrosoftDocs/learn-pr/blob/live/learn-pr/paths/microsoft-azure-fundamentals-describe-cloud-concepts/index.yml
@@ -110,12 +111,13 @@ async function extractFolderPathFromLearnLearningPathUrl(learnUrl: string): Prom
             throw new Error("Could not extract folder path from the GitHub URL format.");
         }
 
-        return pathMatch[1];
+        const folderPath = pathMatch[1];
+        console.log(`Extracted folder path: ${folderPath}`);
+
+        return folderPath;
     } catch (error) {
         console.error("Error extracting folder path from Learn learning path URL:", error);
-        throw new Error(
-            `Failed to extract folder path from Learn learning path URL: ${error instanceof Error ? error.message : "Unknown error"}`,
-        );
+        throw new Error(`Failed to extract folder path from Learn learning path URL: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
 }
 
@@ -158,11 +160,7 @@ function detectPathType(input: string): PathType {
  */
 function createPathFromUid(uid: string): string {
     // The uids have just learn at the start but the folder path is learn-pr
-    return uid
-        .trim()
-        .split(".")
-        .map((part) => (part === "learn" ? "learn-pr" : part))
-        .join("/");
+    return uid.trim().split('.').map(part => part === "learn" ? "learn-pr" : part).join("/");
 }
 
 export const pathUtilities = {
@@ -170,5 +168,5 @@ export const pathUtilities = {
     extractFolderPathFromLearnModuleUrl,
     extractFolderPathFromLearnLearningPathUrl,
     detectPathType,
-    createPathFromUid,
+    createPathFromUid
 };
