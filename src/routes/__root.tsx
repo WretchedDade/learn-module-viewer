@@ -67,14 +67,41 @@ function RootComponent() {
                     className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:border-zinc-800 dark:bg-zinc-900/80"
                 >
                     <div className="px-4 py-3 flex items-center justify-between">
-                        <Link
-                            to="/"
-                            className="inline-flex items-center gap-2 text-lg md:text-xl font-semibold tracking-tight text-gray-900 hover:opacity-90 dark:text-zinc-100"
-                            aria-label="Go to home"
-                        >
-                            Starfleet
-                        </Link>
-                        <ThemeToggleButton />
+                        <div className="flex items-center gap-6">
+                            <Link
+                                to="/"
+                                className="inline-flex items-center gap-2 text-lg md:text-xl font-semibold tracking-tight text-gray-900 hover:opacity-90 dark:text-zinc-100"
+                                aria-label="Go to home"
+                            >
+                                Starfleet
+                            </Link>
+                            <nav className="flex items-center gap-4 text-sm">
+                                <Link
+                                    to="/"
+                                    className="text-gray-700 hover:text-gray-900 dark:text-zinc-300 dark:hover:text-zinc-100"
+                                >
+                                    Home
+                                </Link>
+                                <Link
+                                    to="/video"
+                                    className="text-gray-700 hover:text-gray-900 dark:text-zinc-300 dark:hover:text-zinc-100"
+                                >
+                                    Video
+                                </Link>
+                            </nav>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <a
+                                href="https://github.com/WretchedDade/learn-module-viewer"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-gray-700 hover:text-gray-900 dark:text-zinc-300 dark:hover:text-zinc-100 text-sm"
+                                aria-label="Open GitHub repository"
+                            >
+                                GitHub
+                            </a>
+                            <ThemeToggleButton />
+                        </div>
                     </div>
                 </header>
                 <Outlet />
